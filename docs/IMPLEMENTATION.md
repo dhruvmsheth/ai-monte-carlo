@@ -273,10 +273,12 @@ GET https://api.census.gov/data/timeseries/qwi/sa
 
 **Gotchas:**
 - Must query one state at a time (the API requires `in=state:XX`)
+- **Suppression is the biggest problem:** County-level data for a narrow 6-digit NAICS like 518210 will be heavily suppressed for confidentiality. Expect only ~50-100 counties to have unsuppressed values.
+- **Fallback:** If 518210 (6-digit) is too suppressed, use 4-digit NAICS 5182 for broader coverage
 - Many counties will return no data for NAICS 518210 — assign 0, not NaN
-- Some state-quarter combos may be suppressed for confidentiality
-- Latest available quarter likely R2025Q2 (released ~6 months after reference period)
+- Latest available quarter is approximately R2025Q2 (some states lag to 2024-Q4)
 - Rate limit: ~500 requests/day without key, unlimited with key
+- **NAICS revision:** In the 2022 NAICS revision, 518210 mapping changed slightly — verify which NAICS vintage the QWI data uses for your target years
 
 **Implementation:** `src/data/qwi.py`
 
@@ -304,10 +306,13 @@ def fetch_qwi_employment(
 ### 4d. Partisan Lean (% Republican 2024)
 
 - **Source:** MIT Election Lab, County Presidential Election Returns 2000-2024
-- **Download:** https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/VOQCHQ
-- **Alternative:** https://github.com/tonmcg/US_County_Level_Election_Results_08-24
-- **Format:** CSV/TSV with FIPS codes included
+- **Primary (2024):** https://github.com/MIT-Election-Lab/2024-elections-official
+- **Fallback (2000-2020):** https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/VOQCHQ
+- **Pre-cleaned alternative:** https://github.com/tonmcg/US_County_Level_Election_Results_08-24
+- **Format:** CSV with FIPS codes included
 - **Key columns:** `county_fips`, `party`, `candidatevotes`, `totalvotes`
+- **Alaska gotcha:** Reports by State House District, not county — needs manual mapping
+- **Virginia gotcha:** Independent cities have unique FIPS codes distinct from surrounding counties
 
 **Implementation:**
 
@@ -340,6 +345,9 @@ def get_partisan_lean(election_csv_path: str) -> pd.Series:
 2. Create a manual `data/external/state_incentives.csv` with columns: `state, incentive_score, source_notes`
 3. Scale to 0-1 where 1 = most generous incentives
 4. Apply uniformly to all counties in each state (as proposed)
+
+**Subsidy Tracker (machine-readable alternative):**
+Good Jobs First also maintains a searchable database at https://subsidytracker.goodjobsfirst.org/. Search for "data center" and export as CSV. This gives deal-level data (recipient, subsidy amount, jobs promised) that can be aggregated by state. Only 11 states disclose recipient-level data; 25 states score 0/4 on transparency.
 
 **Alternative if GJF doesn't have a clean ranking:** Use a simpler proxy:
 - States with explicit DC tax exemptions (Virginia, Georgia, Texas, Ohio, etc.) get high score
@@ -476,7 +484,7 @@ This report is critical for calibrating intervention functions:
 | Water consumption | Y million gallons/day | Validates water stress feature importance |
 | Employment | Z jobs statewide | Cross-check with QWI data |
 
-**Acquisition:** The JLARC report is freely available as PDF from the URL above. Read and extract the specific figures needed.
+**Acquisition:** The JLARC report is freely available as PDF from the URL above. Look for "Supplemental Data" links at the bottom of the landing page — there are **supplemental Excel files** with county-level breakdowns that are more useful than the PDF narrative. Key figure from supplemental data: Loudoun County property tax revenue from DCs was $733M in 2024 with a fiscal benefit ratio of 13:1.
 
 ---
 

@@ -63,6 +63,7 @@ class TestEnrichCountyFeatures:
         assert "water_stress_decile" in enriched.columns
         assert "partisan_lean_r" in enriched.columns
         assert "dc_employment" in enriched.columns
+        assert "dc_employment_growth" in enriched.columns
 
     def test_does_not_mutate_input(self):
         df = _make_county_df()

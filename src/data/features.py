@@ -122,6 +122,8 @@ def enrich_county_features(
         df["partisan_lean_r"] = np.nan
     if "dc_employment" not in df.columns:
         df["dc_employment"] = 0
+    if "dc_employment_growth" not in df.columns:
+        df["dc_employment_growth"] = 0.0
 
     return df
 
@@ -172,12 +174,27 @@ def merge_external_features(
 
     # QWI employment
     if qwi_employment is not None and len(qwi_employment) > 0:
-        qwi = qwi_employment[["fips", "dc_employment"]].drop_duplicates(subset=["fips"])
-        qwi = qwi.rename(columns={"dc_employment": "dc_employment_new"})
+        qwi_cols = ["fips", "dc_employment"]
+        if "dc_employment_growth" in qwi_employment.columns:
+            qwi_cols.append("dc_employment_growth")
+        qwi = qwi_employment[qwi_cols].drop_duplicates(subset=["fips"])
+        qwi = qwi.rename(
+            columns={
+                "dc_employment": "dc_employment_new",
+                "dc_employment_growth": "dc_employment_growth_new",
+            }
+        )
         df = df.merge(qwi, on="fips", how="left")
         df["dc_employment"] = df["dc_employment_new"].fillna(df["dc_employment"]).fillna(0)
         df["dc_employment"] = df["dc_employment"].astype(int)
         df = df.drop(columns=["dc_employment_new"])
+        if "dc_employment_growth_new" in df.columns:
+            df["dc_employment_growth"] = (
+                df["dc_employment_growth_new"]
+                .fillna(df.get("dc_employment_growth", 0.0))
+                .fillna(0.0)
+            )
+            df = df.drop(columns=["dc_employment_growth_new"])
 
     return df
 

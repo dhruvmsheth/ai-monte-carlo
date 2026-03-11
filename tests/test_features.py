@@ -4,11 +4,11 @@ import pandas as pd
 import pytest
 
 from src.data.features import (
-    _fips_to_state_score,
     build_feature_matrix,
     enrich_county_features,
     load_opposition_data,
     load_partisan_lean,
+    load_state_incentives,
     load_water_stress,
     merge_external_features,
 )
@@ -33,18 +33,26 @@ def _make_county_df() -> pd.DataFrame:
 
 
 class TestStateIncentiveScores:
-    def test_known_state(self):
-        assert _fips_to_state_score("VA") == 0.90
+    def test_loads_from_csv(self):
+        """Real state_incentives.csv should load with correct scores."""
+        si = load_state_incentives()
+        assert len(si) == 51  # 50 states + DC
+        va = si[si["state"] == "VA"]["incentive_score"].iloc[0]
+        assert va == 1.0  # VA is most generous per GJF research
 
-    def test_unknown_state_default(self):
-        assert _fips_to_state_score("WY") == 0.50
-
-    def test_enrichment_adds_scores(self):
+    def test_enrichment_uses_csv_scores(self):
         df = _make_county_df()
         enriched = enrich_county_features(df)
         assert "state_incentive_score" in enriched.columns
         va_score = enriched[enriched["state"] == "VA"]["state_incentive_score"].iloc[0]
-        assert va_score == 0.90
+        assert va_score == 1.0  # From CSV, not hardcoded
+        az_score = enriched[enriched["state"] == "AZ"]["state_incentive_score"].iloc[0]
+        assert az_score == 0.75  # AZ has DC tax exemptions per GJF
+
+    def test_missing_csv_defaults_to_neutral(self):
+        df = _make_county_df()
+        enriched = enrich_county_features(df, state_incentives_path="/nonexistent/path.csv")
+        assert all(enriched["state_incentive_score"] == 0.50)
 
 
 class TestEnrichCountyFeatures:
@@ -76,6 +84,21 @@ class TestLoadExternalData:
         result = load_opposition_data("/nonexistent/path.csv")
         assert len(result) == 0
 
+    def test_real_water_stress_loads(self):
+        ws = load_water_stress()
+        assert len(ws) > 3000
+        assert ws["water_stress_decile"].between(1, 10).all()
+
+    def test_real_partisan_lean_loads(self):
+        pl = load_partisan_lean()
+        assert len(pl) > 3000
+        assert pl["partisan_lean_r"].between(0, 1).all()
+
+    def test_real_opposition_loads(self):
+        opp = load_opposition_data()
+        assert len(opp) >= 40
+        assert "fips" in opp.columns
+
 
 class TestMergeExternalFeatures:
     def test_water_stress_merge(self):
@@ -104,9 +127,7 @@ class TestMergeExternalFeatures:
             }
         )
         merged = merge_external_features(df, opposition=opp)
-        # Maricopa should now have pushback_flag=1
         assert merged[merged["fips"] == "04013"]["pushback_flag"].iloc[0] == 1
-        # Prince William already had 1, should stay 1
         assert merged[merged["fips"] == "51153"]["pushback_flag"].iloc[0] == 1
 
     def test_empty_externals_no_change(self):
@@ -121,6 +142,17 @@ class TestBuildFeatureMatrix:
         result = build_feature_matrix(df)
         assert "state_incentive_score" in result.columns
         assert len(result) == 3
+
+    def test_real_data_merges_correctly(self):
+        """With real external data files, features should be populated."""
+        df = _make_county_df()
+        result = build_feature_matrix(df)
+        # Water stress should be filled for all 3 counties
+        assert result["water_stress_decile"].notna().sum() == 3
+        # Partisan lean should be filled for at least 2 (Loudoun + Maricopa are in dataset)
+        assert result["partisan_lean_r"].notna().sum() >= 2
+        # Maricopa should gain pushback from opposition data
+        assert result[result["fips"] == "04013"]["pushback_flag"].iloc[0] == 1
 
     def test_writes_csv(self, tmp_path):
         df = _make_county_df()

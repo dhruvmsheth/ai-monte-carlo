@@ -1,0 +1,48 @@
+fips,county,state,opposition_type,source
+04013,Maricopa,Arizona,cancelled,datacenterwatch
+04019,Pima,Arizona,delayed,news
+06085,Santa Clara,California,delayed,datacenterwatch
+13015,Bartow,Georgia,ordinance,news
+13063,Clayton,Georgia,moratorium,news
+13077,Coweta,Georgia,moratorium,news
+13089,DeKalb,Georgia,ordinance,news
+13117,Forsyth,Georgia,ordinance,news
+13121,Fulton,Georgia,ban,news
+13169,Jones,Georgia,ordinance,news
+13171,Lamar,Georgia,moratorium,news
+13187,Lumpkin,Georgia,ordinance,news
+13217,Newton,Georgia,ordinance,news
+13231,Pike,Georgia,moratorium,news
+13285,Troup,Georgia,moratorium,news
+18049,Fulton,Indiana,moratorium,news
+18097,Marion,Indiana,cancelled,news
+18099,Marshall,Indiana,moratorium,news
+18127,Porter,Indiana,cancelled,datacenterwatch
+18133,Putnam,Indiana,moratorium,news
+18149,Starke,Indiana,moratorium,news
+18181,White,Indiana,moratorium,news
+20209,Wyandotte,Kansas,delayed,news
+21185,Oldham,Kentucky,cancelled,news
+23001,Androscoggin,Maine,rejected,news
+24033,Prince George's,Maryland,moratorium,news
+29037,Cass,Missouri,ban,news
+29183,St. Charles,Missouri,ban,news
+34023,Middlesex,New Jersey,rejected,news
+41027,Hood River,Oregon,cancelled,datacenterwatch
+41065,Wasco,Oregon,ordinance,news
+42029,Chester,Pennsylvania,delayed,news
+42069,Lackawanna,Pennsylvania,cancelled,news
+47157,Shelby,Tennessee,delayed,news
+48439,Tarrant,Texas,delayed,datacenterwatch
+51036,Charles City,Virginia,cancelled,news
+51047,Culpeper,Virginia,rejected,datacenterwatch
+51061,Fauquier,Virginia,cancelled,datacenterwatch
+51099,King George,Virginia,delayed,datacenterwatch
+51107,Loudoun,Virginia,ordinance,news
+51109,Louisa,Virginia,cancelled,news
+51143,Pittsylvania,Virginia,cancelled,news
+51145,Powhatan,Virginia,delayed,datacenterwatch
+51153,Prince William,Virginia,delayed,datacenterwatch
+51510,Alexandria city,Virginia,delayed,datacenterwatch
+51683,Manassas city,Virginia,cancelled,datacenterwatch
+51760,Richmond city,Virginia,cancelled,datacenterwatch

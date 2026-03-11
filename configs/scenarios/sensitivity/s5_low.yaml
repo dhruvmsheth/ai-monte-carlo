@@ -1,0 +1,16 @@
+# -30% intervention coefficients on firm_consent_75
+_base: "s5_firm_consent_75"
+
+scenario:
+  name: "firm_consent_75_low"
+  threshold: 0.75
+  firm_borne: true
+
+interventions:
+  tax_benefit:
+    enabled: true
+    A: 0.14
+    lambda_: 0.175
+  employment_benefit:
+    enabled: true
+    L: 0.105

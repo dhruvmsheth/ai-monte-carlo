@@ -1,0 +1,4 @@
+scenario:
+  name: "supermajority_75"
+  threshold: 0.75
+  firm_borne: false

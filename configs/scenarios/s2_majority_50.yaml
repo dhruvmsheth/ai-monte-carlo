@@ -1,0 +1,4 @@
+scenario:
+  name: "majority_50"
+  threshold: 0.50
+  firm_borne: false

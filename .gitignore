@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data (raw downloads are not tracked)
+data/raw/
+
+# Outputs (regenerated from code)
+outputs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+*.Zone.Identifier
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (track only what's in data/external/)
+*.csv
+*.parquet
+*.xlsx
+!data/external/*.csv
+!data/external/*.json
+
+# PDFs (project docs, not code)
+*.pdf

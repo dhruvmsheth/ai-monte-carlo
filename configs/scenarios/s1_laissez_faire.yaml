@@ -1,0 +1,4 @@
+scenario:
+  name: "laissez_faire"
+  threshold: null
+  firm_borne: false

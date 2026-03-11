@@ -1,0 +1,10 @@
+scenario:
+  name: "firm_consent_50"
+  threshold: 0.50
+  firm_borne: true
+
+interventions:
+  tax_benefit:
+    enabled: true
+  employment_benefit:
+    enabled: true

@@ -1,0 +1,75 @@
+simulation:
+  n_steps: 120            # Jan 2026 – Dec 2035
+  n_draws: 10000
+  start_year: 2026
+  start_month: 1
+  seed: 42
+  monthly_gw_addition: 1.5  # National baseline (midpoint of 1.3–1.7 GW/month)
+
+candidate_queue:
+  allocation: "eia_share"
+  avg_project_mw: 300       # Average project size for candidate count calculation
+
+approval:
+  provider: "placeholder"   # "placeholder" | "xgboost" | "logistic"
+  beta_concentration: 40    # κ for Beta(μκ, (1-μ)κ)
+
+model:
+  type: "xgboost"
+  xgboost:
+    max_depth: 3
+    n_estimators: 500
+    learning_rate: 0.05
+    early_stopping_rounds: 20
+    min_child_weight: 3
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1
+    reg_lambda: 1.0
+    cv_folds: 5
+  logistic:
+    penalty: "l2"
+    C: 1.0
+    cv_folds: 5
+
+calibration:
+  method: "linear"
+  clip_min: 0.05
+  clip_max: 0.95
+  anchors:
+    - name: "national_median"
+      target_p: 0.44
+      type: "median"
+    - name: "loudoun_va"
+      fips: "51107"
+      target_p: 0.775
+    - name: "prince_william_va"
+      fips: "51153"
+      target_p: 0.25
+
+interventions:
+  tax_benefit:
+    enabled: false
+    A: 0.20              # Max approval boost at n=0
+    lambda_: 0.25        # Decay rate
+    cost_per_gw_million: 405.8  # $M annual tax revenue per GW (CEA Florida)
+  employment_benefit:
+    enabled: false
+    L: 0.15              # Peak approval boost
+    n0: 10               # Saturation count at peak (midpoint of 8–12)
+    construction_jobs_per_gw: 45367
+    permanent_jobs_per_gw: 5322
+
+scenario:
+  name: "base"
+  threshold: null        # null = laissez-faire
+  firm_borne: false
+
+metrics:
+  track:
+    - total_built
+    - cumulative_gw
+    - gini_coefficient
+    - community_surplus
+    - firm_cost
+    - resistance_cost_savings

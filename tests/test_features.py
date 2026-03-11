@@ -8,6 +8,7 @@ from src.data.features import (
     enrich_county_features,
     load_opposition_data,
     load_partisan_lean,
+    load_qwi_employment,
     load_state_incentives,
     load_water_stress,
     merge_external_features,
@@ -99,6 +100,12 @@ class TestLoadExternalData:
         assert len(opp) >= 40
         assert "fips" in opp.columns
 
+    def test_real_qwi_loads(self):
+        qwi = load_qwi_employment()
+        assert len(qwi) > 1000
+        assert "dc_employment" in qwi.columns
+        assert (qwi["dc_employment"] >= 0).all()
+
 
 class TestMergeExternalFeatures:
     def test_water_stress_merge(self):
@@ -153,6 +160,9 @@ class TestBuildFeatureMatrix:
         assert result["partisan_lean_r"].notna().sum() >= 2
         # Maricopa should gain pushback from opposition data
         assert result[result["fips"] == "04013"]["pushback_flag"].iloc[0] == 1
+        # Loudoun should have QWI employment > 0
+        loudoun_emp = result[result["fips"] == "51107"]["dc_employment"].iloc[0]
+        assert loudoun_emp > 0
 
     def test_writes_csv(self, tmp_path):
         df = _make_county_df()

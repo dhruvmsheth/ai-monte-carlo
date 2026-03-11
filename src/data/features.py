@@ -77,6 +77,20 @@ def load_opposition_data(path: str | Path | None = None) -> pd.DataFrame:
     return pd.read_csv(path, dtype={"fips": str})
 
 
+def load_qwi_employment(path: str | Path | None = None) -> pd.DataFrame:
+    """Load county-level DC employment from Census QWI (NAICS 5182).
+
+    Source: Census Bureau Quarterly Workforce Indicators API.
+    Expected CSV columns: fips, dc_employment, dc_employment_growth.
+    """
+    if path is None:
+        path = _EXTERNAL_DIR / "qwi_employment.csv"
+    path = Path(path)
+    if not path.exists():
+        return pd.DataFrame(columns=["fips", "dc_employment", "dc_employment_growth"])
+    return pd.read_csv(path, dtype={"fips": str})
+
+
 # ---------------------------------------------------------------------------
 # Feature enrichment
 # ---------------------------------------------------------------------------
@@ -122,6 +136,7 @@ def merge_external_features(
     water_stress: pd.DataFrame | None = None,
     partisan_lean: pd.DataFrame | None = None,
     opposition: pd.DataFrame | None = None,
+    qwi_employment: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Merge all external feature sources into the county DataFrame.
 
@@ -155,6 +170,15 @@ def merge_external_features(
             axis=1,
         )
 
+    # QWI employment
+    if qwi_employment is not None and len(qwi_employment) > 0:
+        qwi = qwi_employment[["fips", "dc_employment"]].drop_duplicates(subset=["fips"])
+        qwi = qwi.rename(columns={"dc_employment": "dc_employment_new"})
+        df = df.merge(qwi, on="fips", how="left")
+        df["dc_employment"] = df["dc_employment_new"].fillna(df["dc_employment"]).fillna(0)
+        df["dc_employment"] = df["dc_employment"].astype(int)
+        df = df.drop(columns=["dc_employment_new"])
+
     return df
 
 
@@ -168,6 +192,7 @@ def build_feature_matrix(
     water_stress_path: str | Path | None = None,
     partisan_lean_path: str | Path | None = None,
     opposition_path: str | Path | None = None,
+    qwi_employment_path: str | Path | None = None,
     state_incentives_path: str | Path | None = None,
     output_path: str | Path | None = None,
 ) -> pd.DataFrame:
@@ -180,8 +205,9 @@ def build_feature_matrix(
     water_stress = load_water_stress(water_stress_path)
     partisan_lean = load_partisan_lean(partisan_lean_path)
     opposition = load_opposition_data(opposition_path)
+    qwi_employment = load_qwi_employment(qwi_employment_path)
 
-    df = merge_external_features(df, water_stress, partisan_lean, opposition)
+    df = merge_external_features(df, water_stress, partisan_lean, opposition, qwi_employment)
 
     if output_path is not None:
         out = Path(output_path)

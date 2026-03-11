@@ -174,17 +174,21 @@ def _make_synthetic_matrix(n: int = 100, seed: int = 42) -> pd.DataFrame:
     df = pd.DataFrame(
         {
             "fips": [f"{i:05d}" for i in range(n)],
-            "facility_count": rng.integers(1, 15, n),
-            "total_mw": rng.uniform(0, 5000, n),
             "avg_project_mw": rng.uniform(100, 1000, n),
             "hyperscaler_share": rng.uniform(0, 1, n),
-            "saturation_count": rng.integers(0, 50, n),
             "pushback_flag": rng.integers(0, 2, n),
             "state_incentive_score": rng.uniform(0.25, 1.0, n),
             "dc_employment": rng.integers(0, 5000, n),
             "dc_employment_growth": rng.uniform(-0.5, 5.0, n),
             "water_stress_decile": rng.integers(1, 11, n),
             "partisan_lean_r": rng.uniform(0.1, 0.9, n),
+            "population": rng.integers(1000, 1000000, n),
+            "population_density": rng.uniform(1, 5000, n),
+            "median_household_income": rng.integers(30000, 150000, n),
+            "unemployment_rate": rng.uniform(0.02, 0.15, n),
+            "pct_college_educated": rng.uniform(0.1, 0.6, n),
+            "ag_employment_share": rng.uniform(0.0, 0.3, n),
+            "electricity_price": rng.uniform(8, 30, n),
         }
     )
     # Binary outcome: counties with pushback + high water stress more likely blocked
@@ -239,7 +243,7 @@ class TestXGBoostModel:
         model = XGBoostApprovalModel(xgb_config=_fast_xgb_config())
         model.train(df)
         importances = model.feature_importances()
-        assert len(importances) == 11
+        assert len(importances) == 15
         total = sum(importances.values())
         assert total == pytest.approx(1.0, abs=0.01)
 

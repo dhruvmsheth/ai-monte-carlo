@@ -19,18 +19,24 @@ from src.model.calibration import calibrate_county_probabilities, fit_calibratio
 from src.model.protocol import p_to_beta_params
 
 # Feature columns used for training (order matters for feature importance)
+# Structural features only — dynamic features (saturation_count, facility_count,
+# total_mw) are handled by intervention functions during simulation, not here.
 FEATURE_COLS: list[str] = [
-    "facility_count",
-    "total_mw",
     "avg_project_mw",
     "hyperscaler_share",
-    "saturation_count",
     "pushback_flag",
     "state_incentive_score",
     "dc_employment",
     "dc_employment_growth",
     "water_stress_decile",
     "partisan_lean_r",
+    "population",
+    "population_density",
+    "median_household_income",
+    "unemployment_rate",
+    "pct_college_educated",
+    "ag_employment_share",
+    "electricity_price",
 ]
 
 

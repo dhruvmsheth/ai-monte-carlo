@@ -91,6 +91,45 @@ def load_qwi_employment(path: str | Path | None = None) -> pd.DataFrame:
     return pd.read_csv(path, dtype={"fips": str})
 
 
+def load_census_acs(path: str | Path | None = None) -> pd.DataFrame:
+    """Load county-level Census ACS demographic features.
+
+    Source: Census ACS 5-Year 2022 + Gazetteer (land area).
+    Columns: fips, population, population_density, median_household_income,
+    unemployment_rate, pct_college_educated, ag_employment_share.
+    """
+    if path is None:
+        path = _EXTERNAL_DIR / "census_acs.csv"
+    path = Path(path)
+    if not path.exists():
+        return pd.DataFrame(
+            columns=[
+                "fips",
+                "population",
+                "population_density",
+                "median_household_income",
+                "unemployment_rate",
+                "pct_college_educated",
+                "ag_employment_share",
+            ]
+        )
+    return pd.read_csv(path, dtype={"fips": str})
+
+
+def load_electricity_price(path: str | Path | None = None) -> pd.DataFrame:
+    """Load state-level average retail electricity prices.
+
+    Source: EIA Electric Power Monthly 2023.
+    Columns: state, state_fips, electricity_price_cents_kwh.
+    """
+    if path is None:
+        path = _EXTERNAL_DIR / "electricity_price.csv"
+    path = Path(path)
+    if not path.exists():
+        return pd.DataFrame(columns=["state", "state_fips", "electricity_price_cents_kwh"])
+    return pd.read_csv(path)
+
+
 # ---------------------------------------------------------------------------
 # Feature enrichment
 # ---------------------------------------------------------------------------
@@ -139,6 +178,8 @@ def merge_external_features(
     partisan_lean: pd.DataFrame | None = None,
     opposition: pd.DataFrame | None = None,
     qwi_employment: pd.DataFrame | None = None,
+    census_acs: pd.DataFrame | None = None,
+    electricity_price: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Merge all external feature sources into the county DataFrame.
 
@@ -196,6 +237,35 @@ def merge_external_features(
             )
             df = df.drop(columns=["dc_employment_growth_new"])
 
+    # Census ACS demographic features
+    if census_acs is not None and len(census_acs) > 0:
+        acs_cols = [
+            "fips",
+            "population",
+            "population_density",
+            "median_household_income",
+            "unemployment_rate",
+            "pct_college_educated",
+            "ag_employment_share",
+        ]
+        acs = census_acs[[c for c in acs_cols if c in census_acs.columns]].drop_duplicates(
+            subset=["fips"]
+        )
+        df = df.merge(acs, on="fips", how="left")
+        df["population"] = df["population"].fillna(0).astype(int)
+        df["population_density"] = df["population_density"].fillna(0.0)
+        df["median_household_income"] = df["median_household_income"].fillna(0).astype(int)
+        df["unemployment_rate"] = df["unemployment_rate"].fillna(0.05)
+        df["pct_college_educated"] = df["pct_college_educated"].fillna(0.23)
+        df["ag_employment_share"] = df["ag_employment_share"].fillna(0.06)
+
+    # State-level electricity price
+    if electricity_price is not None and len(electricity_price) > 0:
+        price_map = dict(
+            zip(electricity_price["state"], electricity_price["electricity_price_cents_kwh"])
+        )
+        df["electricity_price"] = df["state"].map(price_map).fillna(15.3)
+
     return df
 
 
@@ -211,6 +281,8 @@ def build_feature_matrix(
     opposition_path: str | Path | None = None,
     qwi_employment_path: str | Path | None = None,
     state_incentives_path: str | Path | None = None,
+    census_acs_path: str | Path | None = None,
+    electricity_price_path: str | Path | None = None,
     output_path: str | Path | None = None,
 ) -> pd.DataFrame:
     """Build the complete county feature matrix.
@@ -223,8 +295,18 @@ def build_feature_matrix(
     partisan_lean = load_partisan_lean(partisan_lean_path)
     opposition = load_opposition_data(opposition_path)
     qwi_employment = load_qwi_employment(qwi_employment_path)
+    census_acs = load_census_acs(census_acs_path)
+    electricity_price = load_electricity_price(electricity_price_path)
 
-    df = merge_external_features(df, water_stress, partisan_lean, opposition, qwi_employment)
+    df = merge_external_features(
+        df,
+        water_stress,
+        partisan_lean,
+        opposition,
+        qwi_employment,
+        census_acs,
+        electricity_price,
+    )
 
     if output_path is not None:
         out = Path(output_path)

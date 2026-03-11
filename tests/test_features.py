@@ -1,0 +1,131 @@
+"""Tests for src/data/features.py — external data enrichment and feature matrix."""
+
+import pandas as pd
+import pytest
+
+from src.data.features import (
+    _fips_to_state_score,
+    build_feature_matrix,
+    enrich_county_features,
+    load_opposition_data,
+    load_partisan_lean,
+    load_water_stress,
+    merge_external_features,
+)
+
+
+def _make_county_df() -> pd.DataFrame:
+    """Minimal county DataFrame matching aggregate_to_county output."""
+    return pd.DataFrame(
+        {
+            "fips": ["51107", "51153", "04013"],
+            "county": ["Loudoun", "Prince William", "Maricopa"],
+            "state": ["VA", "VA", "AZ"],
+            "facility_count": [20, 5, 12],
+            "total_mw": [6000.0, 1500.0, 3600.0],
+            "avg_project_mw": [300.0, 300.0, 300.0],
+            "saturation_count": [15, 3, 9],
+            "pushback_flag": [0, 1, 0],
+            "hyperscaler_share": [0.8, 0.3, 0.5],
+            "binary_outcome": [1.0, 0.0, 1.0],
+        }
+    )
+
+
+class TestStateIncentiveScores:
+    def test_known_state(self):
+        assert _fips_to_state_score("VA") == 0.90
+
+    def test_unknown_state_default(self):
+        assert _fips_to_state_score("WY") == 0.50
+
+    def test_enrichment_adds_scores(self):
+        df = _make_county_df()
+        enriched = enrich_county_features(df)
+        assert "state_incentive_score" in enriched.columns
+        va_score = enriched[enriched["state"] == "VA"]["state_incentive_score"].iloc[0]
+        assert va_score == 0.90
+
+
+class TestEnrichCountyFeatures:
+    def test_adds_placeholder_columns(self):
+        df = _make_county_df()
+        enriched = enrich_county_features(df)
+        assert "water_stress_decile" in enriched.columns
+        assert "partisan_lean_r" in enriched.columns
+        assert "dc_employment" in enriched.columns
+
+    def test_does_not_mutate_input(self):
+        df = _make_county_df()
+        original_cols = set(df.columns)
+        enrich_county_features(df)
+        assert set(df.columns) == original_cols
+
+
+class TestLoadExternalData:
+    def test_water_stress_missing_file(self):
+        result = load_water_stress("/nonexistent/path.csv")
+        assert len(result) == 0
+        assert "fips" in result.columns
+
+    def test_partisan_lean_missing_file(self):
+        result = load_partisan_lean("/nonexistent/path.csv")
+        assert len(result) == 0
+
+    def test_opposition_missing_file(self):
+        result = load_opposition_data("/nonexistent/path.csv")
+        assert len(result) == 0
+
+
+class TestMergeExternalFeatures:
+    def test_water_stress_merge(self):
+        df = enrich_county_features(_make_county_df())
+        ws = pd.DataFrame({"fips": ["51107", "04013"], "water_stress_decile": [4, 7]})
+        merged = merge_external_features(df, water_stress=ws)
+        assert merged[merged["fips"] == "51107"]["water_stress_decile"].iloc[0] == 4
+        assert merged[merged["fips"] == "04013"]["water_stress_decile"].iloc[0] == 7
+
+    def test_partisan_lean_merge(self):
+        df = enrich_county_features(_make_county_df())
+        pl = pd.DataFrame({"fips": ["51107"], "partisan_lean_r": [0.45]})
+        merged = merge_external_features(df, partisan_lean=pl)
+        assert merged[merged["fips"] == "51107"]["partisan_lean_r"].iloc[0] == pytest.approx(0.45)
+
+    def test_opposition_additive(self):
+        """Opposition merge should add to existing pushback flags, never remove."""
+        df = enrich_county_features(_make_county_df())
+        opp = pd.DataFrame(
+            {
+                "fips": ["04013"],  # Maricopa currently has pushback_flag=0
+                "county": ["Maricopa"],
+                "state": ["AZ"],
+                "opposition_type": ["moratorium"],
+                "source": ["bryce"],
+            }
+        )
+        merged = merge_external_features(df, opposition=opp)
+        # Maricopa should now have pushback_flag=1
+        assert merged[merged["fips"] == "04013"]["pushback_flag"].iloc[0] == 1
+        # Prince William already had 1, should stay 1
+        assert merged[merged["fips"] == "51153"]["pushback_flag"].iloc[0] == 1
+
+    def test_empty_externals_no_change(self):
+        df = enrich_county_features(_make_county_df())
+        merged = merge_external_features(df)
+        assert len(merged) == len(df)
+
+
+class TestBuildFeatureMatrix:
+    def test_returns_enriched_df(self):
+        df = _make_county_df()
+        result = build_feature_matrix(df)
+        assert "state_incentive_score" in result.columns
+        assert len(result) == 3
+
+    def test_writes_csv(self, tmp_path):
+        df = _make_county_df()
+        out = tmp_path / "features.csv"
+        build_feature_matrix(df, output_path=out)
+        assert out.exists()
+        loaded = pd.read_csv(out)
+        assert len(loaded) == 3

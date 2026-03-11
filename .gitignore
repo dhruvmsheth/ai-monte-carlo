@@ -36,12 +36,13 @@ Thumbs.db
 # Jupyter
 .ipynb_checkpoints/
 
-# Data files (track only what's in data/external/)
+# Data files (track external references and processed outputs)
 *.csv
 *.parquet
 *.xlsx
 !data/external/*.csv
 !data/external/*.json
+!data/processed/*.csv
 
 # PDFs (project docs, not code)
 *.pdf

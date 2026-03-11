@@ -203,6 +203,7 @@ def _code_county_outcome(group: pd.DataFrame) -> int | None:
 def aggregate_to_county(
     tier1: pd.DataFrame,
     tier2: pd.DataFrame,
+    all_facilities: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Aggregate facility-level data to county level.
 
@@ -210,13 +211,16 @@ def aggregate_to_county(
     ----------
     tier1 : Tier 1 facilities (Hyperscale + Mega) — used for features and outcomes.
     tier2 : Tier 2 facilities (all Operating) — used for saturation counts.
+    all_facilities : Full cleaned DataFrame (all rows) — used for pushback flags
+        so we capture opposition noted on ANY facility, not just Tier 1.
+        If None, falls back to using tier1 only for pushback.
 
     Returns
     -------
     DataFrame with one row per county (keyed by ``fips``), containing:
     - facility_count, total_mw, avg_project_mw
     - saturation_count (from Tier 2)
-    - pushback_flag, hyperscaler_share
+    - pushback_flag (from ALL facilities), hyperscaler_share (from Tier 1)
     - binary_outcome (1=approved, 0=blocked, NaN=undecided)
     - county, state (first occurrence)
     """
@@ -226,6 +230,15 @@ def aggregate_to_county(
 
     # --- Saturation counts from Tier 2 ---
     saturation = tier2.groupby("fips").size().rename("saturation_count")
+
+    # --- Pushback from ALL facilities (not just Tier 1) ---
+    # This ensures we capture opposition noted on any facility in the county,
+    # including the many "Unknown" sizerank entries in Virginia.
+    if all_facilities is not None:
+        all_clean = all_facilities.dropna(subset=["fips"]).copy()
+        pushback = all_clean.groupby("fips")["pushback"].any().astype(int).rename("pushback_flag")
+    else:
+        pushback = tier1.groupby("fips")["pushback"].any().astype(int).rename("pushback_flag")
 
     # --- County-level aggregation from Tier 1 ---
     grouped = tier1.groupby("fips")
@@ -237,10 +250,8 @@ def aggregate_to_county(
     # Average project MW (only from facilities with known MW)
     avg_mw = grouped["mw_numeric"].mean().rename("avg_project_mw")
 
-    # Pushback flag: 1 if any facility in county has pushback
-    pushback = grouped["pushback"].any().astype(int).rename("pushback_flag")
-
-    # Hyperscaler share
+    # Hyperscaler share (from Tier 1 only — these are the >100MW facilities
+    # where operator identity is most meaningful)
     hyperscaler_share = grouped["is_hyperscaler"].mean().rename("hyperscaler_share")
 
     # Binary outcome
@@ -251,7 +262,7 @@ def aggregate_to_county(
 
     # Combine
     county_df = pd.concat(
-        [names, facility_count, total_mw, avg_mw, pushback, hyperscaler_share, outcomes],
+        [names, facility_count, total_mw, avg_mw, hyperscaler_share, outcomes],
         axis=1,
     )
     county_df.index.name = "fips"
@@ -259,6 +270,10 @@ def aggregate_to_county(
     # Merge saturation from Tier 2
     county_df = county_df.join(saturation, how="left")
     county_df["saturation_count"] = county_df["saturation_count"].fillna(0).astype(int)
+
+    # Merge pushback (from all facilities) — left join keeps only counties in Tier 1
+    county_df = county_df.join(pushback, how="left")
+    county_df["pushback_flag"] = county_df["pushback_flag"].fillna(0).astype(int)
 
     # Impute missing avg_project_mw with median of known values
     median_mw = county_df["avg_project_mw"].median()
@@ -388,7 +403,7 @@ def run_ingestion(
     """
     df = load_fractracker(csv_path)
     tier1, tier2 = classify_tiers(df)
-    county = aggregate_to_county(tier1, tier2)
+    county = aggregate_to_county(tier1, tier2, all_facilities=df)
     state_shares = compute_state_shares(df)
 
     result = {
@@ -403,6 +418,5 @@ def run_ingestion(
         out = Path(output_dir)
         out.mkdir(parents=True, exist_ok=True)
         county.to_csv(out / "county_facilities.csv", index=False)
-        state_shares.to_csv(out / "state_shares.csv", index=False)
 
     return result

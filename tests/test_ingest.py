@@ -283,6 +283,54 @@ class TestAggregateToCounty:
         assert loudoun["pushback_flag"] == 1
         assert maricopa["pushback_flag"] == 0
 
+    def test_pushback_from_all_facilities(self):
+        """Pushback on non-Tier1 rows should still be captured when all_facilities is passed."""
+        # Tier 1: Maricopa with no pushback
+        tier1_rows = [
+            _make_facility_row(
+                county="Maricopa",
+                state="AZ",
+                mw="300",
+                status="Operating",
+                sizerank="Hyperscale (100-999 MW)",
+                community_pushback="",
+            ),
+        ]
+        # Tier 2: same
+        tier2_rows = [
+            _make_facility_row(county="Maricopa", state="AZ", status="Operating"),
+        ]
+        # All facilities includes a non-Tier1 row WITH pushback
+        all_rows = tier1_rows + [
+            _make_facility_row(
+                county="Maricopa",
+                state="AZ",
+                sizerank="Unknown",
+                status="Proposed",
+                community_pushback="Yes",
+            ),
+        ]
+
+        def _prep(rows):
+            df = add_fips_codes(_make_df(rows))
+            df["mw_numeric"] = _parse_mw(df["mw"])
+            df["pushback"] = df["community_pushback"].str.lower().str.strip() == "yes"
+            df["hyperscaler_name"] = df["operator_name"].map(_match_hyperscaler)
+            df["is_hyperscaler"] = df["hyperscaler_name"].notna()
+            return df
+
+        t1 = _prep(tier1_rows)
+        t2 = _prep(tier2_rows)
+        all_f = _prep(all_rows)
+
+        # Without all_facilities: pushback=0 (Tier 1 has no pushback)
+        county_no_all = aggregate_to_county(t1, t2)
+        assert county_no_all.iloc[0]["pushback_flag"] == 0
+
+        # With all_facilities: pushback=1 (non-Tier1 row has pushback)
+        county_with_all = aggregate_to_county(t1, t2, all_facilities=all_f)
+        assert county_with_all.iloc[0]["pushback_flag"] == 1
+
     def test_hyperscaler_share(self):
         t1, t2 = self._setup_data()
         county = aggregate_to_county(t1, t2)

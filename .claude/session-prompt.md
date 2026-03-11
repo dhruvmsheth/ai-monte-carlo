@@ -21,25 +21,39 @@ If resuming mid-issue, check for any failing tests with `make test` before conti
 | `configs/base.yaml` | All simulation parameters (read this to understand the config structure) |
 | `tests/conftest.py` | Shared test fixtures (rng, tiny_counties) |
 
-## Phase 1 Issue Dependency Order
+## Research Phase Dependency Order
 
-Implement in this order (earlier issues unblock later ones):
+Issues are structured as research milestones, not infra tasks. Implement in this order:
 
 ```
-#2 Config system ──→ #3 Scenario YAMLs
-       │
-       ├──→ #4 Simulation state
-       │
-       ├──→ #5 Placeholder model
-       │
-       ├──→ #6 Intervention functions
-       │
-       └──→ #7 Candidate queue
-                │
-                └──→ #8 Simulation engine ──→ #9 Metrics ──→ #10 Runner ──→ #11 Viz ──→ #12 Integration test
-```
+[Complete] #2 Config system, #3 Scenario YAMLs, #4 Simulation state
 
-Issue #1 (scaffolding) is already done.
+#16 County Data Foundation
+ │   FracTracker ingestion, FIPS mapping, external data enrichment
+ │   (Census QWI, water stress, partisan lean, state incentives, opposition data)
+ │   Output: county_feature_matrix.csv, state_shares.csv
+ │
+ ▼
+#17 Approval Probability Model
+ │   XGBoost on ~108 labeled counties, calibration anchors, Beta parameterization
+ │   Intervention functions (tax decay + employment bell curve)
+ │   Placeholder model for Phase 1 development
+ │
+ ▼
+#18 Monte Carlo Simulation Engine
+ │   Candidate generation, monthly simulation loop, firm optimization (LP)
+ │   Metrics: Gini, community surplus, firm cost
+ │
+ ▼
+#19 Scenario Analysis
+ │   Runner + CLI, comparative results across 5 consent regimes
+ │   Sensitivity analysis (±30%), integration test, reproducibility
+ │
+ ▼
+#20 Visual Storytelling
+     Growth trajectories, county heatmap, Gini concentration
+     Firm cost vs community benefit, interactive p5.js threshold explorer
+```
 
 ## Workflow for Each Issue
 
@@ -49,12 +63,14 @@ Issue #1 (scaffolding) is already done.
 4. `make test` and `make lint` must pass
 5. Commit: `git commit -m "feat(module): description (#N)"`
 6. Push + PR: `git push -u origin <branch>` then `gh pr create`
+7. Merge PR, update main locally
+8. Write a natural-language narrative explaining what was built and why it matters
 
-## Important Design Decisions (from docs/IMPLEMENTATION.md)
+## Important Design Decisions
 
-- **FracTracker CSV** is in `data/raw/` (1,380 rows; filter to >100MW = 337 facilities for modeling)
+- **FracTracker CSV** is in `data/raw/` (1,380 rows; filter to >100MW = 337 facilities, 235 counties)
+- **Approval model:** XGBoost only for probability output; feature importances (or SHAP) for interpretability. Logistic regression is an optional independent sanity check, NOT a downstream consumer of XGBoost.
 - **Employment benefit curve** is bell-shaped: `L × (n/n₀) × exp(1 - n/n₀)`, NOT sigmoid
-- **Dual model:** XGBoost + logistic regression, common `ApprovalModel` protocol
 - **Explicit RNG:** Always pass `rng: np.random.Generator`, never global seed
 - **Config-driven:** All params in YAML, scenarios are overlays on `configs/base.yaml`
 - **FIPS mapping:** Use `addfips` library to map county+state → 5-digit FIPS

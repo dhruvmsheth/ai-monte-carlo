@@ -8,19 +8,27 @@ Speculative algorithm design project for VC 162 (Values in Computational Thinkin
 
 **Research question:** What if tech corporations bore the cost of obtaining local consent for data center construction, rather than communities bearing the cost of resistance?
 
-**Status:** Phase 1 — Building simulation engine with placeholder approval probabilities.
+**Status:** Phase 1 — Implementing research pipeline (config + state complete, data ingestion next).
 
-## Architecture
+## Research Phases
 
-Three-stage pipeline:
-1. **Approval Model** (`src/model/`) — XGBoost + logistic regression on ~60–80 county observations. Phase 1 uses `placeholders.py`.
-2. **Anchor Calibration** (`src/model/calibration.py`) — Linear rescaling → Beta(α,β) per county.
-3. **Monte Carlo Simulation** (`src/simulation/`) — 120 monthly steps, 10,000 draws/scenario.
+The project is organized as 5 research milestones (#16–#20), not infra tasks:
 
-Supporting modules:
-- `src/config.py` — YAML config loading with base + scenario overlay merge
+1. **County Data Foundation** (#16) — FracTracker ingestion, FIPS mapping, external data enrichment (Census QWI, water stress, partisan lean, state incentives, opposition data). Output: county feature matrix.
+2. **Approval Probability Model** (#17) — XGBoost on ~108 labeled counties for probability output + feature importances for interpretability. Calibration via anchor points → Beta(α,β) per county. Intervention functions (tax decay, employment bell curve). Placeholder model for Phase 1.
+3. **Monte Carlo Simulation** (#18) — Candidate generation, monthly simulation loop, firm optimization (LP), metrics (Gini, surplus, firm cost). 120 months × 10,000 draws/scenario.
+4. **Scenario Analysis** (#19) — Runner + CLI, comparative results across 5 consent regimes, sensitivity analysis, integration test.
+5. **Visual Storytelling** (#20) — Growth trajectories, county heatmap, Gini concentration, cost-benefit, interactive p5.js threshold explorer.
+
+## Key Modules
+
+- `src/config.py` — YAML config loading with base + scenario overlay merge (complete)
+- `src/simulation/state.py` — Mutable state dataclasses for Monte Carlo draws (complete)
+- `src/data/` — FracTracker ingestion, feature engineering, external data
+- `src/model/` — XGBoost approval model, calibration, placeholder
 - `src/interventions/` — Tax benefit (exponential decay) and employment benefit (bell curve)
-- `src/viz/` — Matplotlib trajectories, heatmaps, tables; JSON export for p5.js
+- `src/simulation/` — Engine, candidate queue, metrics, runner
+- `src/viz/` — Matplotlib figures; JSON export for p5.js interactive
 
 ## Tech Stack
 
@@ -52,5 +60,5 @@ Plus ±30% sensitivity variants in `configs/scenarios/sensitivity/`.
 - All tunable parameters in YAML configs, never hardcoded in Python
 - Explicit RNG: pass `rng: np.random.Generator`, never use global `np.random.seed()`
 - County-level analysis keyed by FIPS code
-- Approval model accessed via protocol interface (placeholder/xgboost/logistic)
+- Approval model: XGBoost for probability output, feature importances for interpretability. Protocol interface shared by placeholder and real models.
 - Use `gemini -p` for bulk web research and data source exploration

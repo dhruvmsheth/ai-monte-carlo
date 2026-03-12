@@ -10,7 +10,7 @@ simulation:
 candidate_queue:
   allocation: "eia_share"
   avg_project_mw: 300       # Average project size for candidate count calculation
-  pipeline_dropout_rate: 0.50  # Fraction of announced projects that never materialize (Greenlink 2025)
+  pipeline_dropout_rate: 0.30  # Fraction that never materialize (calibrated so laissez-faire ≈ expert 62 GW by 2035)
   existing_facility_weight: 3.0  # Selection weight for counties with existing facilities vs greenfield (1.0)
 
 approval:
@@ -24,10 +24,10 @@ model:
     n_estimators: 500
     learning_rate: 0.05
     early_stopping_rounds: 20
-    min_child_weight: 3
+    min_child_weight: 5
     subsample: 0.8
     colsample_bytree: 0.8
-    reg_alpha: 0.1
+    reg_alpha: 0.5
     reg_lambda: 1.0
     cv_folds: 5
   logistic:

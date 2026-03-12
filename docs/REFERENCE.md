@@ -8,10 +8,10 @@
 | n_estimators | 500 | High count + early stopping finds optimal point |
 | learning_rate | 0.05 | Low rate + many trees = better generalization |
 | early_stopping_rounds | 20 | Stops if validation loss plateaus for 20 rounds |
-| min_child_weight | 3 | Requires 3+ samples per leaf (prevents memorization) |
+| min_child_weight | 5 | Requires 5+ samples per leaf (aggressive anti-overfitting for 108 samples) |
 | subsample | 0.8 | 80% row sampling per tree (reduces variance) |
 | colsample_bytree | 0.8 | 80% feature sampling per tree |
-| reg_alpha | 0.1 | L1 regularization (sparse feature selection) |
+| reg_alpha | 0.5 | L1 regularization (strong sparse feature selection for small dataset) |
 | reg_lambda | 1.0 | L2 regularization (smooth weights) |
 | cv_folds | 5 | 5-fold stratified CV for AUC evaluation |
 | scale_pos_weight | auto | Set to n_blocked/n_approved = 27/81 ~ 0.33 |

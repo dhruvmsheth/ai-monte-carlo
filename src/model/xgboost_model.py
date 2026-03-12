@@ -23,20 +23,21 @@ from src.model.protocol import p_to_beta_params
 # total_mw) are handled by intervention functions during simulation, not here.
 FEATURE_COLS: list[str] = [
     "avg_project_mw",
-    "hyperscaler_share",
     "pushback_flag",
-    "state_incentive_score",
     "dc_employment",
     "dc_employment_growth",
     "water_stress_decile",
     "partisan_lean_r",
-    "population",
     "population_density",
-    "median_household_income",
     "unemployment_rate",
     "pct_college_educated",
     "ag_employment_share",
     "electricity_price",
+    # Engineered features: log transforms + interaction
+    "log_population",
+    "log_income",
+    "log_dc_employment",
+    "water_stress_x_density",
 ]
 
 

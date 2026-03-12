@@ -308,6 +308,14 @@ def build_feature_matrix(
         electricity_price,
     )
 
+    # Engineered features: log transforms for skewed distributions + interaction
+    df["log_population"] = np.log1p(df["population"].fillna(0))
+    df["log_income"] = np.log1p(df["median_household_income"].fillna(0))
+    df["log_dc_employment"] = np.log1p(df["dc_employment"].fillna(0))
+    df["water_stress_x_density"] = (
+        df["water_stress_decile"].fillna(5) * df["population_density"].fillna(0) / 1000.0
+    )
+
     if output_path is not None:
         out = Path(output_path)
         out.parent.mkdir(parents=True, exist_ok=True)

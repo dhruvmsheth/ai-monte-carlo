@@ -22,19 +22,8 @@ import plotly.express as px
 from src.config import XGBoostConfig, load_config
 from src.model.xgboost_model import FEATURE_COLS, XGBoostApprovalModel
 
-# Fast training config (use fewer estimators for quick iteration)
-FAST_XGB_CONFIG = XGBoostConfig(
-    max_depth=3,
-    n_estimators=50,
-    learning_rate=0.1,
-    early_stopping_rounds=10,
-    min_child_weight=3,
-    subsample=0.8,
-    colsample_bytree=0.8,
-    reg_alpha=0.1,
-    reg_lambda=1.0,
-    cv_folds=3,
-)
+# Use None to load config from base.yaml (full training config)
+FAST_XGB_CONFIG = None
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 EXTERNAL_DIR = PROJECT_ROOT / "data" / "external"
@@ -137,6 +126,14 @@ def build_all_county_features() -> pd.DataFrame:
     else:
         df["state_incentive_score"] = 0.5
 
+    # Engineered features (must match src/data/features.py)
+    df["log_population"] = np.log1p(df["population"].fillna(0))
+    df["log_income"] = np.log1p(df["median_household_income"].fillna(0))
+    df["log_dc_employment"] = np.log1p(df["dc_employment"].fillna(0))
+    df["water_stress_x_density"] = (
+        df["water_stress_decile"].fillna(5) * df["population_density"].fillna(0) / 1000.0
+    )
+
     df = df.drop(columns=["state_fips"], errors="ignore")
     print(f"Features built: {len(df)} counties, {df['binary_outcome'].notna().sum()} labeled")
     return df
@@ -163,10 +160,10 @@ def main() -> None:
     # Build features for all counties
     df = build_all_county_features()
 
-    # Train XGBoost on labeled counties, predict for all (fast config)
+    # Train XGBoost on labeled counties, predict for all (full config from base.yaml)
     cfg = load_config()
     model = XGBoostApprovalModel(
-        xgb_config=FAST_XGB_CONFIG,
+        xgb_config=FAST_XGB_CONFIG or cfg.model.xgboost,
         calibration_config=cfg.calibration,
     )
     metrics = model.train(df)

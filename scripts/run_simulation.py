@@ -62,6 +62,24 @@ def run_one(scenario_key: str, n_draws: int) -> dict:
     draw_summaries = [dr.summary_dict() for dr in result.draw_results]
     pd.DataFrame(draw_summaries).to_csv(out_dir / "draw_summaries.csv", index=False)
 
+    # Per-draw monthly county builds (for GIF generation)
+    # Format: draw_id, month, fips, builds — only rows where builds > 0
+    build_rows = []
+    for dr in result.draw_results:
+        for snap in dr.monthly_snapshots:
+            for fips, count in snap.county_builds.items():
+                if count > 0:
+                    build_rows.append({
+                        "draw_id": dr.draw_id,
+                        "month": snap.month,
+                        "fips": fips,
+                        "builds": count,
+                    })
+    builds_df = pd.DataFrame(build_rows)
+    builds_path = out_dir / "county_builds_by_month.csv"
+    builds_df.to_csv(builds_path, index=False)
+    print(f"  Saved county builds: {builds_path} ({len(builds_df)} rows)")
+
     return result.aggregate
 
 

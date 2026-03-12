@@ -52,9 +52,9 @@ def step2_train_model(fast: bool = False) -> None:
         print("  Using fast config (50 trees, 3-fold CV)")
         xgb_cfg = XGBoostConfig(
             max_depth=3, n_estimators=50, learning_rate=0.1,
-            early_stopping_rounds=10, min_child_weight=5,
+            early_stopping_rounds=10, min_child_weight=3,
             subsample=0.8, colsample_bytree=0.8,
-            reg_alpha=0.5, reg_lambda=1.0, cv_folds=3,
+            reg_alpha=0.1, reg_lambda=1.0, cv_folds=3,
         )
 
     model = XGBoostApprovalModel(xgb_config=xgb_cfg, calibration_config=cfg.calibration)
@@ -90,9 +90,9 @@ def step3_build_all_county_probs(fast: bool = False) -> None:
     if fast:
         xgb_cfg = XGBoostConfig(
             max_depth=3, n_estimators=50, learning_rate=0.1,
-            early_stopping_rounds=10, min_child_weight=5,
+            early_stopping_rounds=10, min_child_weight=3,
             subsample=0.8, colsample_bytree=0.8,
-            reg_alpha=0.5, reg_lambda=1.0, cv_folds=3,
+            reg_alpha=0.1, reg_lambda=1.0, cv_folds=3,
         )
 
     model = XGBoostApprovalModel(xgb_config=xgb_cfg, calibration_config=cfg.calibration)

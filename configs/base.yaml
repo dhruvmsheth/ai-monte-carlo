@@ -39,6 +39,7 @@ calibration:
   method: "linear"
   clip_min: 0.05
   clip_max: 0.95
+  state_shrinkage_k: 5   # Shrink county predictions toward national median; higher K = more shrinkage
   anchors:
     - name: "national_median"
       target_p: 0.44

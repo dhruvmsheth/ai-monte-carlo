@@ -136,3 +136,42 @@ def calibrate_county_probabilities(
             result[fips] = target_p
 
     return result
+
+
+def apply_state_shrinkage(
+    calibrated: dict[str, float],
+    fips_to_state: dict[str, str],
+    state_train_counts: dict[str, int],
+    k: int = 5,
+    national_median: float = 0.44,
+    clip_min: float = 0.05,
+    clip_max: float = 0.95,
+) -> dict[str, float]:
+    """Shrink calibrated county probabilities toward the national median.
+
+    Counties in states with few training samples get pulled more toward
+    the national median, reducing extrapolation artifacts. Counties in
+    well-represented states (like TX with 23 samples) keep most of their
+    model-derived probability.
+
+    Parameters
+    ----------
+    calibrated : FIPS → calibrated probability.
+    fips_to_state : FIPS → 2-letter state abbreviation.
+    state_train_counts : State abbreviation → number of labeled training counties.
+    k : Shrinkage pseudocount. Higher = more shrinkage toward national_median.
+    national_median : Target to shrink toward (default 0.44 from Heatmap/Embold).
+    clip_min, clip_max : Probability bounds.
+
+    Returns
+    -------
+    Dict of FIPS → shrinkage-adjusted probability.
+    """
+    result = {}
+    for fips, p in calibrated.items():
+        state = fips_to_state.get(fips)
+        n = state_train_counts.get(state, 0) if state else 0
+        w = n / (n + k)  # Weight for model prediction (0 = all prior, 1 = all model)
+        shrunk = w * p + (1 - w) * national_median
+        result[fips] = float(np.clip(shrunk, clip_min, clip_max))
+    return result

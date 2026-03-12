@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold
 
 from src.config import CalibrationConfig, XGBoostConfig
 from src.model.calibration import calibrate_county_probabilities, fit_calibration
@@ -23,21 +23,20 @@ from src.model.protocol import p_to_beta_params
 # total_mw) are handled by intervention functions during simulation, not here.
 FEATURE_COLS: list[str] = [
     "avg_project_mw",
+    "hyperscaler_share",
     "pushback_flag",
+    "state_incentive_score",
     "dc_employment",
     "dc_employment_growth",
     "water_stress_decile",
     "partisan_lean_r",
+    "population",
     "population_density",
+    "median_household_income",
     "unemployment_rate",
     "pct_college_educated",
     "ag_employment_share",
     "electricity_price",
-    # Engineered features: log transforms + interaction
-    "log_population",
-    "log_income",
-    "log_dc_employment",
-    "water_stress_x_density",
 ]
 
 
@@ -111,18 +110,28 @@ class XGBoostApprovalModel:
         )
 
         # 5-fold stratified cross-validation for AUC
+        from sklearn.metrics import roc_auc_score
+        from sklearn.model_selection import train_test_split
+
+        print(f"  [1/3] Cross-validation ({cfg.cv_folds}-fold, {cfg.n_estimators} trees each)")
         skf = StratifiedKFold(n_splits=cfg.cv_folds, shuffle=True, random_state=42)
-        cv_auc = cross_val_score(self._model, X, y, cv=skf, scoring="roc_auc")
+        cv_auc = []
+        for i, (train_idx, val_idx) in enumerate(skf.split(X, y), 1):
+            fold_model = xgb.XGBClassifier(**self._model.get_params())
+            fold_model.fit(X[train_idx], y[train_idx], verbose=False)
+            fold_auc = roc_auc_score(y[val_idx], fold_model.predict_proba(X[val_idx])[:, 1])
+            cv_auc.append(fold_auc)
+            print(f"    Fold {i}/{cfg.cv_folds}: AUC={fold_auc:.3f}", flush=True)
+        cv_auc = np.array(cv_auc)
         self._cv_scores = {
             "cv_auc_mean": float(np.mean(cv_auc)),
             "cv_auc_std": float(np.std(cv_auc)),
             "cv_auc_folds": cv_auc.tolist(),
         }
+        print(f"    Mean AUC: {np.mean(cv_auc):.3f} ± {np.std(cv_auc):.3f}")
 
-        # Train on full labeled data with early stopping via eval set
-        # Split 80/20 for early stopping
-        from sklearn.model_selection import train_test_split
-
+        # Train with early stopping (80/20 split)
+        print(f"  [2/3] Training with early stopping...", end=" ", flush=True)
         X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=0.2, stratify=y, random_state=42
         )
@@ -132,9 +141,12 @@ class XGBoostApprovalModel:
             eval_set=[(X_val, y_val)],
             verbose=False,
         )
+        print("done")
 
         # Refit on ALL labeled data for final model
+        print("  [3/3] Final refit on all labeled data...", end=" ", flush=True)
         self._model.fit(X, y, verbose=False)
+        print("done")
 
         # Store raw predictions for all counties (labeled + unlabeled)
         X_all = feature_matrix[self._feature_cols].values

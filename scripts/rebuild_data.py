@@ -61,6 +61,11 @@ def step2_train_model(fast: bool = False) -> None:
     metrics = model.train(matrix)
     print(f"  CV AUC: {metrics['cv_auc_mean']:.3f} ± {metrics['cv_auc_std']:.3f}")
 
+    imp = model.feature_importances()
+    print("  Feature importances:")
+    for k, v in sorted(imp.items(), key=lambda x: -x[1]):
+        print(f"    {k:25s}: {v:.4f}")
+
     cal = model.calibrate()
     print(f"  Calibrated: {cal['n_counties']} counties, "
           f"range [{cal['p_min']:.3f}, {cal['p_max']:.3f}], mean={cal['p_mean']:.3f}")

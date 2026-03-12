@@ -91,13 +91,44 @@ def build_all_county_features() -> pd.DataFrame:
     df = df.merge(pl[["fips", "partisan_lean_r"]], on="fips", how="left")
     df["partisan_lean_r"] = df["partisan_lean_r"].fillna(0.5)  # Neutral
 
-    # QWI employment
-    if "dc_employment" in qwi.columns:
-        qwi_sub = qwi[["fips", "dc_employment"]].drop_duplicates(subset=["fips"])
+    # QWI employment (dc_employment + dc_employment_growth)
+    qwi_cols = [c for c in ["fips", "dc_employment", "dc_employment_growth"] if c in qwi.columns]
+    if "fips" in qwi_cols:
+        qwi_sub = qwi[qwi_cols].drop_duplicates(subset=["fips"])
         df = df.merge(qwi_sub, on="fips", how="left")
-        df["dc_employment"] = df["dc_employment"].fillna(0).astype(int)
-    else:
+    if "dc_employment" not in df.columns:
         df["dc_employment"] = 0
+    df["dc_employment"] = df["dc_employment"].fillna(0).astype(int)
+    if "dc_employment_growth" not in df.columns:
+        df["dc_employment_growth"] = 0.0
+    df["dc_employment_growth"] = df["dc_employment_growth"].fillna(0.0)
+
+    # Census ACS demographics
+    acs_path = EXTERNAL_DIR / "census_acs.csv"
+    if acs_path.exists():
+        acs = pd.read_csv(acs_path, dtype={"fips": str})
+        acs_cols = ["fips", "population", "population_density",
+                    "median_household_income", "unemployment_rate",
+                    "pct_college_educated", "ag_employment_share"]
+        acs_cols = [c for c in acs_cols if c in acs.columns]
+        df = df.merge(acs[acs_cols], on="fips", how="left")
+    for col, default in [("population", 30000), ("population_density", 100.0),
+                         ("median_household_income", 55000),
+                         ("unemployment_rate", 5.0),
+                         ("pct_college_educated", 0.20),
+                         ("ag_employment_share", 0.05)]:
+        if col not in df.columns:
+            df[col] = default
+        df[col] = df[col].fillna(default)
+
+    # EIA electricity prices (state-level)
+    elec_path = EXTERNAL_DIR / "electricity_price.csv"
+    if elec_path.exists():
+        elec = pd.read_csv(elec_path)
+        elec_map = dict(zip(elec["state"], elec["electricity_price_cents_kwh"]))
+        df["electricity_price"] = df["state"].map(elec_map).fillna(12.0)
+    else:
+        df["electricity_price"] = 12.0
 
     # State incentive scores
     if "state" in df.columns:

@@ -15,7 +15,11 @@ import pandas as pd
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from src.config import CalibrationConfig, XGBoostConfig
-from src.model.calibration import calibrate_county_probabilities, fit_calibration
+from src.model.calibration import (
+    apply_state_shrinkage,
+    calibrate_county_probabilities,
+    fit_calibration,
+)
 from src.model.protocol import p_to_beta_params
 
 # Feature columns used for training (order matters for feature importance)
@@ -60,6 +64,8 @@ class XGBoostApprovalModel:
         self._raw_probs: dict[str, float] = {}
         self._cv_scores: dict[str, float] = {}
         self._feature_cols = list(FEATURE_COLS)
+        self._fips_to_state: dict[str, str] = {}
+        self._state_train_counts: dict[str, int] = {}
 
     def train(
         self,
@@ -140,6 +146,15 @@ class XGBoostApprovalModel:
         raw_probs = self._model.predict_proba(X_all)[:, 1]
         self._raw_probs = dict(zip(feature_matrix["fips"].values, raw_probs.tolist()))
 
+        # Store state info for post-calibration shrinkage
+        if "state" in feature_matrix.columns:
+            self._fips_to_state = dict(
+                zip(feature_matrix["fips"].values, feature_matrix["state"].fillna("").values)
+            )
+            self._state_train_counts = (
+                labeled.groupby("state")["binary_outcome"].count().to_dict()
+            )
+
         return {
             "n_train": len(y),
             "n_approved": n_approved,
@@ -181,6 +196,18 @@ class XGBoostApprovalModel:
         self._calibrated_probs = calibrate_county_probabilities(
             self._raw_probs, anchors, cmin, cmax
         )
+
+        # Apply state-level shrinkage to reduce extrapolation artifacts
+        k = self._cal_config.state_shrinkage_k
+        if k > 0 and self._fips_to_state:
+            self._calibrated_probs = apply_state_shrinkage(
+                self._calibrated_probs,
+                self._fips_to_state,
+                self._state_train_counts,
+                k=k,
+                clip_min=cmin,
+                clip_max=cmax,
+            )
 
         return {
             "median_shift": self._calibration.median_shift,

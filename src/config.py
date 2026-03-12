@@ -85,6 +85,7 @@ class CalibrationConfig:
     method: str = "linear"
     clip_min: float = 0.05
     clip_max: float = 0.95
+    state_shrinkage_k: int = 5
     anchors: tuple[CalibrationAnchor, ...] = ()
 
 

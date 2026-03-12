@@ -34,6 +34,7 @@ class MonthSnapshot:
     monthly_infeasible: int
     firm_cost_m: float
     gini: float
+    county_builds: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass
@@ -309,6 +310,7 @@ def run_single_draw(
             monthly_infeasible=monthly_infeasible,
             firm_cost_m=total_firm_cost,
             gini=gini_coefficient(build_counts),
+            county_builds=dict(result.county_builds),
         )
         result.monthly_snapshots.append(snapshot)
 

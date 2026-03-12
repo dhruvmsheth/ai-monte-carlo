@@ -27,12 +27,15 @@ class SimulationConfig:
     start_month: int = 1
     seed: int = 42
     monthly_gw_addition: float = 1.5
+    geographic_substitution_prob: float = 0.5
 
 
 @dataclass(frozen=True)
 class CandidateQueueConfig:
     allocation: str = "eia_share"
     avg_project_mw: float = 300.0
+    pipeline_dropout_rate: float = 0.50
+    existing_facility_weight: float = 3.0
 
 
 @dataclass(frozen=True)

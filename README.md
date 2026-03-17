@@ -2,7 +2,7 @@
 
 *Modeling Data Center Growth Under Alternative Consent Regimes*
 
-A Monte Carlo simulation modeling U.S. data center growth from 2026–2035 under five community consent scenarios. Built for VC 162 (Values in Computational Thinking).
+A Monte Carlo simulation modeling U.S. data center growth from 2026–2035 under five community consent scenarios. Built for VC 162.
 
 ## Setup
 

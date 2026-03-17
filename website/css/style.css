@@ -1,0 +1,744 @@
+/* ============ RESET & BASE ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fdfdfd;
+  --text: #111;
+  --text-dim: #555;
+  --text-muted: #828282;
+  --border: #e8e8e8;
+  --accent: #2a7ae2;
+  --accent-visited: #1756a9;
+  --highlight-bg: #f7f7f4;
+  --s1: #2563eb;
+  --s2: #7c3aed;
+  --s3: #dc2626;
+  --s4: #16a34a;
+  --s5: #d97706;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font: 400 16px/1.7 "Palatino", "Palatino Linotype", "URW Palladio L",
+        "Book Antiqua", Georgia, serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:visited { color: var(--accent-visited); }
+a:hover { color: var(--text); text-decoration: underline; }
+
+/* ============ LAYOUT ============ */
+.wrapper {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ============ HEADER ============ */
+.site-header {
+  border-top: 5px solid #424242;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  margin-bottom: 40px;
+}
+
+.site-header .wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1060px;
+}
+
+.site-title {
+  font-size: 1.625rem;
+  font-weight: 300;
+  letter-spacing: -1px;
+  color: #424242;
+}
+
+.site-title:hover { text-decoration: none; }
+
+.site-nav a {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-left: 20px;
+}
+
+/* ============ POST HEADER ============ */
+.post-header {
+  text-align: center;
+  padding-top: 60px;
+  margin-bottom: 2rem;
+}
+
+.post-title {
+  font-size: 2.625rem;
+  font-weight: 400;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin-bottom: 0.3em;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.post-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  max-width: 680px;
+  margin: 0 auto 1rem;
+  line-height: 1.7;
+}
+
+.post-authors {
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.epigraph {
+  max-width: 680px;
+  margin: 1.5rem auto 0;
+  border: none;
+  padding: 0;
+  font-style: italic;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.epigraph cite {
+  font-style: normal;
+  font-size: 0.85rem;
+  color: #999;
+  display: block;
+  margin-top: 0.4em;
+}
+
+/* ============ POST CONTENT ============ */
+.post-content {
+  margin-bottom: 30px;
+}
+
+.post-content h2 {
+  font-size: 2rem;
+  font-weight: 400;
+  margin-top: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.post-content h3 {
+  font-size: 1.625rem;
+  font-weight: 400;
+  margin-top: 2.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.post-content p {
+  margin-bottom: 1.2em;
+}
+
+.post-content strong {
+  font-weight: 600;
+}
+
+.post-content em {
+  font-style: italic;
+}
+
+blockquote {
+  color: var(--text-muted);
+  border-left: 4px solid var(--border);
+  padding-left: 15px;
+  font-size: 1.05rem;
+  letter-spacing: -0.3px;
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+
+/* ============ STAT CALLOUTS ============ */
+.stat-row {
+  display: flex;
+  gap: 20px;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  background: var(--highlight-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 24px;
+  text-align: center;
+  flex: 1;
+  min-width: 160px;
+}
+
+.stat-box .num {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+}
+
+.stat-box .lbl {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ============ HIGHLIGHT BOX ============ */
+.highlight-box {
+  background: var(--highlight-bg);
+  border-left: 4px solid var(--accent);
+  padding: 20px 24px;
+  margin: 2rem 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.highlight-box p {
+  margin-bottom: 0;
+}
+
+/* ============ SCENARIO CARDS ============ */
+.scenario-cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin: 1.5rem 0 2rem;
+}
+
+.scenario-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  transition: box-shadow 0.2s;
+}
+
+.scenario-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.scenario-card[data-scenario="s1"] { border-top: 3px solid var(--s1); }
+.scenario-card[data-scenario="s2"] { border-top: 3px solid var(--s2); }
+.scenario-card[data-scenario="s3"] { border-top: 3px solid var(--s3); }
+.scenario-card[data-scenario="s4"] { border-top: 3px solid var(--s4); }
+.scenario-card[data-scenario="s5"] { border-top: 3px solid var(--s5); }
+
+.card-badge {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.scenario-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+}
+
+.scenario-card p {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin-bottom: 0;
+}
+
+/* ============ VIZ SECTIONS ============ */
+.viz-wrapper {
+  margin: 1.5rem 0 2rem;
+}
+
+.viz-canvas {
+  width: 100%;
+  min-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viz-canvas canvas {
+  display: block;
+  border-radius: 6px;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.viz-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.viz-controls select {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.82rem;
+  font-family: inherit;
+}
+
+.viz-controls input[type="range"] {
+  width: 180px;
+  accent-color: var(--accent);
+}
+
+.viz-controls input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.btn {
+  background: #fff;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 3px 12px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: rgba(42, 122, 226, 0.06);
+}
+
+.viz-caption {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ============ EMBED FRAMES ============ */
+.embed-frame {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.embed-frame iframe {
+  width: 100%;
+  height: 580px;
+  border: none;
+  display: block;
+  overflow: hidden;
+}
+
+.embed-frame-tall iframe {
+  height: 660px;
+}
+
+.embed-frame-plotly iframe {
+  height: 620px;
+}
+
+/* ============ TWO-COLUMN METHOD ============ */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 1.5rem 0 2rem;
+}
+
+.col-card {
+  background: var(--highlight-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.col-card h4 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.col-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.col-card ul li {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  padding: 4px 0;
+  padding-left: 1.2em;
+  position: relative;
+}
+
+.col-card ul li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.col-card .caveat {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+/* ============ FEATURE IMPORTANCE ============ */
+.fi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 24px;
+  margin: 1rem 0 1.5rem;
+}
+
+.fi-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+}
+
+.fi-label {
+  flex: 0 0 180px;
+  color: var(--text-dim);
+  text-align: right;
+  font-family: "SFMono-Regular", "Menlo", "Monaco", monospace;
+  font-size: 0.8rem;
+}
+
+.fi-bar-bg {
+  flex: 1;
+  height: 14px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fi-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.fi-val {
+  flex: 0 0 40px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ============ SIMULATION STEPS ============ */
+.sim-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 1.5rem 0 2rem;
+}
+
+.sim-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sim-step:last-child { border-bottom: none; }
+
+.step-num {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.step-body h4 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.step-body p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+/* ============ FINDINGS ============ */
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  margin-top: 2rem;
+}
+
+.finding {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.finding-number {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(42, 122, 226, 0.08);
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.finding-text h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+}
+
+.finding-text p {
+  color: var(--text-dim);
+  font-size: 0.92rem;
+}
+
+/* ============ METHODOLOGY ============ */
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 1.5rem;
+}
+
+.method-item {
+  background: var(--highlight-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px;
+}
+
+.method-item h4 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.method-item p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin-bottom: 0;
+}
+
+/* ============ SOURCES ============ */
+.source-list {
+  list-style: none;
+  padding: 0;
+}
+
+.source-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
+.source-list li:last-child { border-bottom: none; }
+
+/* ============ FOOTER ============ */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 30px 0;
+  margin-top: 60px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ============ SECTION REVEAL ============ */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============ MAP TOGGLE ============ */
+.map-toggle-group {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+}
+
+.map-toggle {
+  background: #fff;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-toggle:first-child { border-radius: 6px 0 0 6px; }
+.map-toggle:last-child { border-radius: 0 6px 6px 0; }
+.map-toggle:not(:first-child) { border-left: none; }
+
+.map-toggle:hover {
+  background: rgba(42, 122, 226, 0.04);
+}
+
+.map-toggle.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.map-toggle.active + .map-toggle {
+  border-left-color: var(--accent);
+}
+
+/* ============ PIPELINE DIAGRAM ============ */
+.pipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 2rem 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.pipe-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  flex: 1;
+}
+
+.pipe-box {
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 14px 12px;
+  text-align: center;
+  width: 100%;
+  position: relative;
+}
+
+.pipe-box h5 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pipe-box p {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+.pipe-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+  color: var(--accent);
+  font-size: 1.4rem;
+  min-width: 28px;
+  margin-top: 28px;
+  flex-shrink: 0;
+}
+
+.pipe-box.pipe-highlight {
+  background: rgba(42, 122, 226, 0.06);
+  border-color: var(--accent);
+  border-width: 2.5px;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 900px) {
+  .wrapper { padding: 0 20px; }
+  .post-title { font-size: 2rem; }
+  .post-content h2 { font-size: 1.75rem; }
+  .scenario-cards { grid-template-columns: 1fr 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .fi-grid { grid-template-columns: 1fr; }
+  .finding { flex-direction: column; gap: 10px; }
+  .viz-controls { flex-direction: column; align-items: flex-start; }
+  .viz-canvas { min-height: 320px; }
+  .embed-frame iframe { height: 450px; }
+  .embed-frame-tall iframe { height: 520px; }
+  .embed-frame-plotly iframe { height: 500px; }
+  .map-toggle-group { flex-wrap: wrap; }
+  .map-toggle { flex: 1; min-width: 120px; border-radius: 4px !important; border-left: 1px solid var(--border) !important; }
+  .pipeline { flex-wrap: wrap; justify-content: center; }
+  .pipe-arrow { transform: rotate(90deg); min-width: auto; margin-top: 0; padding: 4px 0; }
+}

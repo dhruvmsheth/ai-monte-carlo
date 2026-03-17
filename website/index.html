@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What If Tech Corporations Bore the Cost of Consent?</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrapper">
+      <a class="site-title" href="#">CS 162 &middot; Speculative Design</a>
+      <nav class="site-nav">
+        <a href="#current-state">Today</a>
+        <a href="#scenarios">Scenarios</a>
+        <a href="#growth">Results</a>
+        <a href="#method">Methods</a>
+        <a href="#sources">Sources</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrapper">
+    <article>
+
+      <!-- ============ HEADER ============ -->
+      <header class="post-header">
+        <h1 class="post-title">What If Tech Corporations Bore the Cost of Consent?</h1>
+        <p class="post-subtitle">
+          Modeling Data Center Growth Under Alternative Community Approval Regimes
+        </p>
+        <p class="post-authors">
+          By Dhruv Sheth, Lauren Pryor, Tyler Gatewood, Amrita Pasupathy
+        </p>
+        <p class="post-meta">
+          March 2026
+        </p>
+        <blockquote class="epigraph">
+          <p>The question isn't whether communities will resist.
+          It's whether we build a system where resistance is the only recourse.</p>
+        </blockquote>
+      </header>
+
+      <!-- ============ CONTENT ============ -->
+      <div class="post-content">
+
+        <!-- ============ INTRODUCTION ============ -->
+        <div class="scroll-reveal">
+        <p>
+          As data centers rapidly emerge to meet the demands of modern technology, many
+          communities struggle to provide the power, water, and land resources necessary to
+          support such aggressive expansion. This project explores how changes in
+          consent-based policy affect data center creation in U.S. communities.
+        </p>
+        <p>
+          Data centers are heavily on the rise in the United States, especially with the
+          increasing popularity of Artificial Intelligence in recent years. In 2025, U.S.
+          data center capacity was already approximately <strong>10.2 gigawatts</strong>.
+          By 2035, it is projected to reach <strong>71.8 gigawatts</strong> - a
+          seven-fold increase (ABI Research, January 2026). Cushman &amp; Wakefield
+          estimated 25.3 GW was already under construction in the Americas at the end of
+          2025 alone.
+        </p>
+        </div>
+
+        <div class="scroll-reveal">
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="num">704%</div>
+            <div class="lbl">Projected capacity increase, 2025-2035</div>
+          </div>
+          <div class="stat-box">
+            <div class="num">~600</div>
+            <div class="lbl">Facilities in Virginia alone</div>
+          </div>
+          <div class="stat-box">
+            <div class="num">44%</div>
+            <div class="lbl">Americans who support data centers in their community</div>
+          </div>
+        </div>
+        </div>
+
+        <div class="scroll-reveal">
+        <p>
+          This rapid acceleration has come with benefits and drawbacks. Some communities
+          view data centers positively, as they bring increases in tax revenue and
+          employment. On the other hand, these facilities consume enormous amounts of
+          water for cooling, place significant strain on local power grids, and transform
+          the character of the communities they enter.
+        </p>
+        <p>
+          Residents of Northern Virginia - home to the largest data center
+          concentration in the world - have documented sharp rises in electricity
+          costs, aquifer depletion, and the conversion of agricultural land. Virginia's
+          Joint Legislative Audit and Review Commission (JLARC) found in 2024 that while
+          data centers generate substantial tax revenue, the benefits and costs are
+          distributed unevenly across communities, and that saturation effects are already
+          visible in hyperconcentrated counties.
+        </p>
+        <p>
+          Even if communities were to become more informed of the long-term downsides, the
+          current approval process treats data center siting as a routine permitting matter.
+          Community consent, if it exists at all, is passive: residents must organize, fund
+          legal challenges, and sustain pressure campaigns to block projects already in
+          motion. <strong>This silences the voices of the community by placing a higher
+          barrier to participation in decision-making.</strong>
+        </p>
+        </div>
+
+        <div class="scroll-reveal">
+        <div class="highlight-box">
+          <p>
+            <strong>Research Question:</strong> What if tech corporations bore the cost of
+            obtaining consent for data center construction, rather than communities bearing
+            the cost of resistance?
+          </p>
+        </div>
+        </div>
+
+        <div class="scroll-reveal">
+        <p>
+          To investigate this, we construct a simulation framework that models U.S. data
+          center growth from 2026 to 2035 under a range of consent regimes - from
+          laissez-faire to supermajority-voting requirements to firm-borne consent
+          mechanisms - and measures how growth trajectories, spatial distributions,
+          and community outcomes change across scenarios.
+        </p>
+        <p>
+          This work functions as a <em>formalizer</em> in the sense described by Abebe et al.
+          (2020): we use technical modeling to make the implicit structure of the existing
+          consent process explicit and measurable, rendering its distributional consequences
+          visible. It also operates as a <em>rebuttal</em>, challenging the unstated assumption
+          that the current process is neutral. As Narayanan (2022) argues, quantitative
+          methods that treat observed outcomes as fair baselines risk laundering existing
+          power structures into algorithmic objectivity.
+        </p>
+        </div>
+
+        <!-- ============ CURRENT STATE ============ -->
+        <h2 id="current-state">The Current Landscape</h2>
+        <div class="scroll-reveal">
+        <p>
+          Before modeling the future, we need a picture of the present. The FracTracker
+          National Data Centers Tracker documents approximately 337 hyperscale and megascale
+          facilities across 232 U.S. counties, representing roughly 10.2 GW of installed
+          capacity.
+        </p>
+        <p>
+          The map below shows every county in our dataset. The 232 counties with existing or
+          proposed data center facilities are shown with circles sized by facility count.
+          Hover over any dot for county details.
+        </p>
+        <div class="viz-wrapper">
+          <div class="embed-frame">
+            <iframe src="embeds/baseline-map.html" title="2025 Data Center Baseline Map" scrolling="no"></iframe>
+          </div>
+          <p class="viz-caption">
+            337 hyperscale/megascale facilities across 232 U.S. counties as of July 2025.
+            Data: FracTracker National Data Centers Tracker. Capacity: ~10.2 GW (ABI Research).
+          </p>
+        </div>
+        <p>
+          The concentration is striking. Northern Virginia alone hosts roughly 600
+          facilities. Texas, Georgia, and the Carolinas are the next tier. Meanwhile, many
+          states with favorable conditions - low water stress, cheap electricity,
+          available land - have almost no data center presence. This geographic
+          inequality is both the starting point for our simulation and one of its key
+          outcome measures.
+        </p>
+        </div>
+
+        <!-- ============ SCENARIOS ============ -->
+        <h2 id="scenarios">Five Alternative Consent Regimes</h2>
+        <div class="scroll-reveal">
+        <p>
+          We operationalize &ldquo;consent&rdquo; through approval thresholds - the
+          share of the local population (at the county level) that must affirmatively
+          support a project before it can proceed. Currently, no such threshold exists
+          in most jurisdictions. Our simulation introduces one and varies it across
+          five scenarios:
+        </p>
+        <div class="scenario-cards">
+          <div class="scenario-card" data-scenario="s1">
+            <div class="card-badge">S1</div>
+            <h3>Laissez-Faire</h3>
+            <p>The status quo: minimal oversight. All candidates are built.</p>
+          </div>
+          <div class="scenario-card" data-scenario="s2">
+            <div class="card-badge">S2</div>
+            <h3>Simple Majority</h3>
+            <p>Mandatory 50%+ community approval for site authorization.</p>
+          </div>
+          <div class="scenario-card" data-scenario="s3">
+            <div class="card-badge">S3</div>
+            <h3>Supermajority</h3>
+            <p>Elevated 75% hurdle reflecting regional ecological impact.</p>
+          </div>
+          <div class="scenario-card" data-scenario="s4">
+            <div class="card-badge">S4</div>
+            <h3>Firm-Borne (50%)</h3>
+            <p>Corporation funds the approval process with simple majority threshold.</p>
+          </div>
+          <div class="scenario-card" data-scenario="s5">
+            <div class="card-badge">S5</div>
+            <h3>Firm-Borne (75%)</h3>
+            <p>Corporation funds full supermajority consensus building.</p>
+          </div>
+        </div>
+        <p>
+          In firm-borne scenarios, corporations can invest in local benefit-sharing - 
+          tax relief, employment guarantees, infrastructure investment - to raise
+          the local approval rate above whichever threshold applies, at a cost they bear.
+          The simulation records what mix of tax relief and employment guarantees they
+          choose, and at what cost. This is the core intervention.
+        </p>
+        </div>
+
+        <!-- ============ PIPELINE DIAGRAM ============ -->
+        <h2 id="method">Full Modeling Pipeline</h2>
+        <div class="scroll-reveal">
+        <p>
+          Our pipeline has six stages, from raw data collection through to the final
+          Monte Carlo simulation outputs:
+        </p>
+        <div class="pipeline">
+          <div class="pipe-stage">
+            <div class="pipe-box">
+              <h5>Data Collection</h5>
+              <p>FracTracker, Census ACS, Census QWI, WRI Aqueduct, MIT Election Lab, Good Jobs First, Bryce DB</p>
+            </div>
+          </div>
+          <div class="pipe-arrow">&rarr;</div>
+          <div class="pipe-stage">
+            <div class="pipe-box">
+              <h5>Feature Matrix</h5>
+              <p>232 counties &times; 15 structural features, FIPS-keyed, with external enrichment</p>
+            </div>
+          </div>
+          <div class="pipe-arrow">&rarr;</div>
+          <div class="pipe-stage">
+            <div class="pipe-box pipe-highlight">
+              <h5>Approval Model</h5>
+              <p>XGBoost (data-driven) + Generative (theory-driven) &rarr; calibrated P(approve)</p>
+            </div>
+          </div>
+          <div class="pipe-arrow">&rarr;</div>
+          <div class="pipe-stage">
+            <div class="pipe-box">
+              <h5>Beta Posteriors</h5>
+              <p>P(county) &rarr; Beta(&alpha;,&beta;) distributions for stochastic sampling</p>
+            </div>
+          </div>
+          <div class="pipe-arrow">&rarr;</div>
+          <div class="pipe-stage">
+            <div class="pipe-box">
+              <h5>Candidate Queue</h5>
+              <p>~1.5 GW/month from industry forecasts, distributed by state EIA share</p>
+            </div>
+          </div>
+          <div class="pipe-arrow">&rarr;</div>
+          <div class="pipe-stage">
+            <div class="pipe-box pipe-highlight">
+              <h5>Monte Carlo</h5>
+              <p>10K draws &times; 120 months &times; 5 scenarios &rarr; growth, Gini, surplus, cost</p>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- ============ TWO-COLUMN METHOD ============ -->
+        <h3>A Two-Column Methodology</h3>
+        <div class="scroll-reveal">
+        <p>
+          The core modeling challenge is that we do not have direct survey data on what
+          share of people in each U.S. county support a new data center. Instead, we must
+          infer a county-level approval probability from observable features. We approach
+          this through <strong>two complementary models</strong> - one data-driven,
+          one theory-driven - that serve as mutual checks on each other.
+        </p>
+
+        <div class="two-col">
+          <div class="col-card">
+            <h4>Data-Driven Model (XGBoost)</h4>
+            <ul>
+              <li>Train on 108 counties with known outcomes</li>
+              <li>Learn nonlinear feature-approval relationships</li>
+              <li>Rank feature importance from data</li>
+              <li>Extrapolate to all 3,153 counties</li>
+              <li>Generalizes from observed outcomes with no manual parameter assumptions</li>
+            </ul>
+            <p class="caveat">Limitation: Prone to inherent training data biases and overfitting due to small sample size.</p>
+          </div>
+          <div class="col-card">
+            <h4>Theory-Driven Model (Generative)</h4>
+            <ul>
+              <li>Inspired by Lombardi Networks &amp; domain knowledge</li>
+              <li>Uses survey data to assign explicit penalties/bonuses per feature</li>
+              <li>Construct approval probability from first principles</li>
+              <li>Transparent causal assumptions</li>
+              <li>Explicit and debatable assumptions with interpretable causal reasoning</li>
+            </ul>
+            <p class="caveat">Limitation: Assumes penalty structure from theory; may miss real-world nonlinearities.</p>
+          </div>
+        </div>
+        </div>
+
+        <!-- ============ XGBOOST DETAIL ============ -->
+        <h3>XGBoost: Data-Driven Approval Model</h3>
+        <div class="scroll-reveal">
+        <p>
+          We train an XGBoost classifier on <strong>108 labeled counties</strong> (81
+          approved, 27 blocked) using 15 structural features. Binary classification of
+          P(county approves) using 5-fold stratified cross-validation.
+          <strong>CV AUC: 0.679 &pm; 0.08.</strong>
+        </p>
+
+        <p><strong>Feature Importance (Top 10):</strong></p>
+        <div class="fi-grid">
+          <div class="fi-row">
+            <span class="fi-label">pushback_flag</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:100%"></div></div>
+            <span class="fi-val">0.310</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">hyperscaler_share</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:38.7%"></div></div>
+            <span class="fi-val">0.120</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">state_incentive_score</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:31.6%"></div></div>
+            <span class="fi-val">0.098</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">dc_employment</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:29.4%"></div></div>
+            <span class="fi-val">0.091</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">avg_project_mw</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:24.5%"></div></div>
+            <span class="fi-val">0.076</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">partisan_lean_r</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:21.0%"></div></div>
+            <span class="fi-val">0.065</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">water_stress_decile</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:18.7%"></div></div>
+            <span class="fi-val">0.058</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">pct_college_educated</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:15.5%"></div></div>
+            <span class="fi-val">0.048</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">population_density</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:13.5%"></div></div>
+            <span class="fi-val">0.042</span>
+          </div>
+          <div class="fi-row">
+            <span class="fi-label">unemployment_rate</span>
+            <div class="fi-bar-bg"><div class="fi-bar" style="width:12.3%"></div></div>
+            <span class="fi-val">0.038</span>
+          </div>
+        </div>
+
+        <p>
+          <strong>Calibration:</strong> Raw XGBoost scores are calibrated via linear
+          rescaling against 3 external anchor points: the national median at 44%
+          (Heatmap/Embold 2025 survey), Loudoun County VA at 77.5% (JLARC, historical
+          pro-development consensus), and Prince William County VA at 25% (documented
+          moratorium). The calibrated probability for each county is then parameterized as
+          a <strong>Beta(&alpha;, &beta;)</strong> distribution for stochastic sampling
+          in the Monte Carlo simulation.
+        </p>
+        </div>
+
+        <!-- ============ GENERATIVE MODEL ============ -->
+        <h3>Generative Approval Model</h3>
+        <div class="scroll-reveal">
+        <p>
+          As a complement to the data-driven approach, we developed a generative model that
+          constructs county-level approval probabilities from first principles. Rather than
+          learning feature weights from training data, we draw on readings about power
+          dynamics and community resistance to choose <strong>three key loci of
+          intervention</strong> for modeling community approval:
+        </p>
+        <ul style="margin-bottom: 1.2em; padding-left: 1.5em;">
+          <li><strong>Drought</strong> (penalty) - represents the stress households
+          face when water resources are already limited, which data centers then amplify.
+          A resource limitation signal.</li>
+          <li><strong>Proximity to resistance</strong> (penalty) - captures protection
+          against information asymmetry. Nearby documented community resistance shifts
+          power imbalances by drawing attention to impacts that might otherwise go
+          unnoticed.</li>
+          <li><strong>Unemployment</strong> (bonus) - functions as a desperation
+          index. Communities with high unemployment are more receptive to job creation
+          narratives, even though data centers may not actually create proportional
+          employment.</li>
+        </ul>
+        <p>
+          These penalties and bonuses are assigned explicitly to each county, and the
+          resulting approval probability is constructed as a weighted sum. The transparency
+          of this approach is its strength: every assumption is visible and debatable,
+          creating a framework where stakeholders can argue about whether the drought
+          penalty is calibrated correctly rather than arguing about whether consent
+          &ldquo;matters&rdquo; in the abstract.
+        </p>
+        </div>
+
+        <!-- ============ APPROVAL PROBABILITY MAPS ============ -->
+        <h3>Approval Probability Maps</h3>
+        <div class="scroll-reveal">
+        <p>
+          The maps below visualize the output of our approval probability model. The first
+          shows the 108 training counties (labeled approved/blocked). The second shows all
+          232 FracTracker counties with calibrated probabilities. The third extrapolates
+          approval probabilities to all 3,153 U.S. counties.
+        </p>
+        <div class="viz-wrapper">
+          <div class="map-toggle-group">
+            <button class="map-toggle active" data-src="embeds/map_108_training.html" data-caption="108 labeled training counties (81 approved, 27 blocked) used for XGBoost model training.">108 Training Counties</button>
+            <button class="map-toggle" data-src="embeds/map_232_fractracker.html" data-caption="232 FracTracker counties with calibrated approval probabilities from the XGBoost model.">232 FracTracker Counties</button>
+            <button class="map-toggle" data-src="embeds/full_approval_map.html" data-caption="All 3,153 U.S. counties with extrapolated approval probabilities. This spatial prior drives which counties receive candidate facilities in the Monte Carlo simulation.">Full U.S. Map</button>
+          </div>
+          <div class="embed-frame embed-frame-plotly">
+            <iframe id="approval-map-iframe" src="embeds/map_108_training.html" title="Approval Probability Map" scrolling="no"></iframe>
+          </div>
+          <p class="viz-caption" id="approval-map-caption">
+            108 labeled training counties (81 approved, 27 blocked) used for XGBoost model training.
+          </p>
+        </div>
+        </div>
+
+        <!-- ============ INTERVENTION FUNCTIONS ============ -->
+        <h3>Nonlinear Intervention Functions</h3>
+        <div class="scroll-reveal">
+        <p>
+          In firm-borne scenarios, two nonlinear intervention channels capture how
+          corporate investment shifts local approval. Both share a structural feature:
+          the marginal impact decreases as the number of existing data centers in the
+          county increases (saturation).
+        </p>
+        <ul style="margin-bottom: 1.2em; padding-left: 1.5em;">
+          <li><strong>Tax-benefit curve:</strong> Exponential decay
+          A&middot;exp(&minus;&lambda;&middot;n). Strong when n is small (early development);
+          decays toward zero as the county saturates. Calibrated using the CEA Florida
+          figure of $405.8M in annual tax revenue per GW.</li>
+          <li><strong>Employment-benefit curve:</strong> Bell-shaped
+          L&middot;(n/n&#8320;)&middot;exp(1&minus;n/n&#8320;). Peaks at moderate facility
+          counts, falls off as communities question whether data centers are net
+          employment generators. Inflection near n=8-12, matching where Northern
+          Virginia commentary shifted from pro-development to skeptical.</li>
+        </ul>
+        </div>
+
+        <!-- ============ MONTE CARLO ============ -->
+        <h3>Monte Carlo Simulation Engine</h3>
+        <div class="scroll-reveal">
+        <p>
+          The simulation runs in monthly time steps from January 2026 through December 2035
+          (120 steps total), repeated across 10,000 independent Monte Carlo draws per scenario.
+        </p>
+
+        <div class="sim-steps">
+          <div class="sim-step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h4>Generate Candidates</h4>
+              <p>~1.5 GW/month drawn from the baseline queue, distributed across states by EIA electricity share.</p>
+            </div>
+          </div>
+          <div class="sim-step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <h4>Assign to Counties</h4>
+              <p>State share &times; county weight. Counties selected proportional to existing facility density.</p>
+            </div>
+          </div>
+          <div class="sim-step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <h4>Sample Approval</h4>
+              <p>Draw from Beta(&alpha;, &beta;) centered on the county's calibrated probability, adjusted for intervention shifts and saturation penalties.</p>
+            </div>
+          </div>
+          <div class="sim-step">
+            <div class="step-num">04</div>
+            <div class="step-body">
+              <h4>Apply Regime Rule</h4>
+              <p>Laissez-faire: draw &gt; 0.5. Voting: draw &gt; threshold. Firm-borne: LP-optimized investment to clear threshold at minimum cost.</p>
+            </div>
+          </div>
+          <div class="sim-step">
+            <div class="step-num">05</div>
+            <div class="step-body">
+              <h4>Update Saturation</h4>
+              <p>If built: n &rarr; n+1 for that county. Intervention deltas decay with n. Community utility and firm cost recorded.</p>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- ============ COUNTERFACTUAL BASELINE ============ -->
+        <h2>Current Snapshot: What Vanishes?</h2>
+        <div class="scroll-reveal">
+        <p>
+          If we had always required consent, how many of today's 337 facilities would exist?
+          We compute a counterfactual 2025 baseline for each scenario. For every county with
+          existing data centers, we ask: given its structural features, what is the
+          probability that a simulated community vote would have approved construction?
+        </p>
+        <p>
+          Under laissez-faire, all 337 facilities remain - 10.2 GW. Under a simple
+          majority, roughly 134 survive (4.1 GW). Under a 75% supermajority, only 23
+          (0.7 GW) would have cleared the bar. When firms invest in consent (S4), 284
+          survive (8.6 GW). Even under the strictest firm-borne regime (S5), 94 facilities
+          (2.9 GW) remain.
+        </p>
+        <p>
+          Each scenario's simulation then <em>starts</em> from its own counterfactual
+          baseline and projects 10 years of growth forward.
+        </p>
+        </div>
+
+        <!-- ============ GROWTH TRAJECTORIES ============ -->
+        <h2 id="growth">Growth Trajectories</h2>
+        <div class="scroll-reveal">
+        <p>
+          How much capacity gets built over the next decade? Each line below starts from
+          its 2025 counterfactual baseline and grows forward through 120 monthly time steps,
+          averaged across 10,000 Monte Carlo draws. Toggle between GW and facility counts;
+          hover for details.
+        </p>
+        <div class="viz-wrapper">
+          <div class="embed-frame">
+            <iframe src="embeds/growth-chart.html" title="Growth Trajectories" scrolling="no"></iframe>
+          </div>
+          <p class="viz-caption">
+            Cumulative capacity (2026-2035) starting from per-scenario counterfactual baselines.
+            Shaded: 95% CI across 10,000 Monte Carlo draws.
+          </p>
+        </div>
+        <p>
+          <strong>S1, S2 reach similar totals (66-90 GW):</strong> Formalizing 50%
+          changes relatively little - the system already has an implicit majority
+          threshold.<br>
+          <strong>S3 (9.0 GW | &minus;86%):</strong> Supermajority without investment
+          nearly kills all development.<br>
+          <strong>S4 (107.5 GW | +62%):</strong> Firm investment creates growth
+          <em>beyond</em> the laissez-faire baseline.<br>
+          <strong>S5 (43.5 GW | &minus;34%):</strong> High bar + firm investment - 
+          less growth, but consent has to be earned.
+        </p>
+        </div>
+
+        <!-- ============ WHERE DO THEY BUILD ============ -->
+        <h2>Where Do They Build?</h2>
+        <div class="scroll-reveal">
+        <p>
+          Each dot below is a U.S. county colored by baseline approval probability
+          (red = low, green = high). Blue circles show where data centers get built under
+          the selected scenario. Hit play to watch a decade unfold.
+        </p>
+        <div class="viz-wrapper">
+          <div class="embed-frame embed-frame-tall">
+            <iframe src="county-map-embed.html" title="Animated County Build Map" scrolling="no"></iframe>
+          </div>
+          <p class="viz-caption">
+            3,109 continental U.S. counties. Approval probabilities from XGBoost model.
+            10,000 Monte Carlo draws. Select scenario and use time slider or play button.
+          </p>
+        </div>
+        </div>
+
+        <!-- ============ SCENARIO SNAPSHOTS ============ -->
+        <h2>What 2035 Looks Like</h2>
+        <div class="scroll-reveal">
+        <p>
+          The maps below show each scenario's end-state at December 2035. Dark outlined
+          circles are existing 2025 facilities; colored circles are new construction.
+          Toggle between scenarios to see how the geographic distribution shifts.
+        </p>
+        <div class="viz-wrapper">
+          <div class="embed-frame embed-frame-tall">
+            <iframe src="embeds/scenario-snapshots.html" title="2035 Scenario Snapshots" scrolling="no"></iframe>
+          </div>
+          <p class="viz-caption">
+            County-level mean builds across 10,000 draws at December 2035. Existing facilities
+            = dark outlines; new builds = scenario colors. Circle size &prop; cumulative build count.
+          </p>
+        </div>
+        <p>
+          Geographic concentration persists in all scenarios (Gini &gt; 0.92). Firm investment
+          increases total capacity and spreads it marginally, but doesn't fully overcome the
+          structural advantages of established data center corridors (Virginia, Georgia, Texas).
+        </p>
+        </div>
+
+        <!-- ============ COST-BENEFIT ============ -->
+        <h2>The Cost of Consent</h2>
+        <div class="scroll-reveal">
+        <p>
+          When firms invest in community consent, they pay real costs - tax incentives
+          calibrated against $405.8M/GW (CEA Florida), plus employment guarantees modeled
+          on 45,367 construction jobs and 5,322 permanent jobs per GW. But those investments
+          generate community surplus that vastly exceeds the cost.
+        </p>
+        <div class="viz-wrapper">
+          <div class="embed-frame">
+            <iframe src="embeds/cost-benefit.html" title="Cost-Benefit Analysis" scrolling="no"></iframe>
+          </div>
+          <p class="viz-caption">
+            Community surplus = cumulative tax revenue + employment value ($M).
+            Firm cost = cumulative consent investment ($M). 10,000 MC draws.
+          </p>
+        </div>
+        </div>
+
+        <!-- ============ FINDINGS ============ -->
+        <h2>Key Findings</h2>
+        <div class="scroll-reveal">
+        <div class="findings">
+          <div class="finding">
+            <div class="finding-number">1</div>
+            <div class="finding-text">
+              <h3>Consent doesn't have to kill growth</h3>
+              <p>
+                Firm-borne consent at 50% <strong>increases capacity by 62%</strong>
+                (358 facilities, 107.5 GW vs. 300 facilities, 90.1 GW under laissez-faire).
+                When firms invest in communities, they unlock counties that would otherwise
+                block development.
+              </p>
+            </div>
+          </div>
+          <div class="finding">
+            <div class="finding-number">2</div>
+            <div class="finding-text">
+              <h3>We can visualize and model harm formally</h3>
+              <p>
+                Unemployment functions as a community's desperation for jobs (even though
+                more jobs aren't necessarily created). Community resistance shifts power
+                imbalances by drawing attention. Drought represents the stress households
+                face when resources are limited, which data centers amplify. By modeling
+                these dynamics, we make tradeoffs visible and debatable.
+              </p>
+            </div>
+          </div>
+          <div class="finding">
+            <div class="finding-number">3</div>
+            <div class="finding-text">
+              <h3>The current system is not neutral</h3>
+              <p>
+                Laissez-faire assigns all resistance costs to communities. Our simulation
+                makes this visible so that the tradeoffs can be recognized and debated
+                honestly. The consent cost that firms bear in S4 and S5 is not a burden
+                added to a neutral system - it is the cost of something that
+                communities are currently providing for free.
+              </p>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- ============ ADDITIONAL RESULTS ============ -->
+        <h2>Summary of Results</h2>
+        <div class="scroll-reveal">
+        <div class="method-grid">
+          <div class="method-item">
+            <h4>Counties Modeled</h4>
+            <p>3,153 counties with extrapolated approval probabilities. 232 with existing
+            data center presence (FracTracker). 108 used for XGBoost training.</p>
+          </div>
+          <div class="method-item">
+            <h4>Monte Carlo Scale</h4>
+            <p>10,000 independent draws &times; 120 months &times; 5 scenarios. Explicit RNG
+            with deterministic per-draw seeds for full reproducibility.</p>
+          </div>
+          <div class="method-item">
+            <h4>Key Metrics</h4>
+            <p>Total facilities built, cumulative GW, Gini coefficient (geographic
+            concentration), community surplus ($M), firm consent cost ($M).</p>
+          </div>
+          <div class="method-item">
+            <h4>Sensitivity Analysis</h4>
+            <p>&pm;30% variants on intervention coefficients test robustness of findings to
+            uncertainty in behavioral parameters.</p>
+          </div>
+        </div>
+        </div>
+
+        <!-- ============ THEORY FRAMING ============ -->
+        <h2>Conceptual Framing</h2>
+        <div class="scroll-reveal">
+        <div class="two-col">
+          <div class="col-card">
+            <h4>Structural Efficiency</h4>
+            <ul>
+              <li>The current &ldquo;laissez-faire&rdquo; regime treats data center creation as the default</li>
+              <li>Communities bear all costs of resistance: legal fees, organizing, pressure campaigns</li>
+              <li>Approval is passive - no formal mechanism for community voice</li>
+            </ul>
+          </div>
+          <div class="col-card">
+            <h4>Relational Consent</h4>
+            <ul>
+              <li>A consent-based approach requires companies to externalize projected environmental impacts before planning approvals</li>
+              <li>Firms internalize the cost of obtaining approval</li>
+              <li>Communities gain a formal mechanism for democratic input</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          Our project most directly instantiates the <em>formalizer</em> role described by
+          Abebe et al. (2020). We take a social and political process - community
+          consent over infrastructure - that currently exists only informally, and
+          build a technical model that makes its parameters explicit and its distributional
+          consequences measurable. We are also aware of the critique Narayanan (2022)
+          raises: our model is deliberately <em>counter-hegemonic</em> in its framing. We
+          do not treat laissez-faire as a neutral baseline; we treat it as a policy choice,
+          comparable in kind to the alternatives we model.
+        </p>
+        </div>
+
+        <!-- ============ DATA SOURCES ============ -->
+        <h2 id="sources">Data Sources</h2>
+        <div class="scroll-reveal">
+        <p>
+          We combined census-level, state-level, city-level, and crowd-sourced data from
+          the following sources:
+        </p>
+        <ul class="source-list">
+          <li><strong>FracTracker Alliance</strong> (July 2025) - 1,380 facilities: name, operator, state, county, MW capacity, status, cooling type, power source, project cost</li>
+          <li><strong>Data Center Watch</strong> Q2 2025 Update - $98B in blocked/delayed projects</li>
+          <li><strong>Robert Bryce Rejection Database</strong> - 39+ U.S. data center rejection or delay cases</li>
+          <li><strong>JLL</strong> 2026 Global Data Center Outlook (January 2026) - 97 GW new global capacity by 2030</li>
+          <li><strong>Cushman &amp; Wakefield</strong> Americas Data Center Market Update H2 2025 - 25.3 GW under construction</li>
+          <li><strong>ABI Research</strong> Data Center Capacity Forecast (January 2026) - 10.2 GW to 71.8 GW by 2035</li>
+          <li><strong>Consumer Energy Alliance</strong>, Economic Impact of Data Centers in Florida (August 2025) - $405.8M/GW tax revenue</li>
+          <li><strong>Good Jobs First</strong>, <em>Cloudy Data, Costly Deals</em> (November 2025) - state subsidy transparency</li>
+          <li><strong>Virginia JLARC</strong>, <em>Data Centers in Virginia</em> (2024) - $1.6-1.9B annual fiscal impact</li>
+          <li><strong>WRI Aqueduct</strong> Water Risk Atlas 4.0 - water stress via area-weighted spatial join of 3,144 counties</li>
+          <li><strong>MIT Election Lab</strong> - 2024 county-level partisan lean (% Republican presidential) for 3,151 counties</li>
+          <li><strong>Census ACS</strong> 5-Year Estimates (2022) - demographics for 3,222 counties</li>
+          <li><strong>Census QWI</strong> (NAICS 518210, R2025Q2) - data center employment</li>
+          <li><strong>EIA</strong> Electric Power Monthly (2023) - state retail electricity prices</li>
+          <li><strong>Heatmap/Embold</strong> National Data Center Public Opinion Survey (2025) - 44% national approval median</li>
+        </ul>
+
+        <h3>References</h3>
+        <ul class="source-list">
+          <li>Abebe, R. et al. (2020). &ldquo;Roles for Computing in Social Change.&rdquo; <em>FAccT 2020.</em></li>
+          <li>Narayanan, A. (2022). &ldquo;The Limits of the Quantitative Approach to Discrimination.&rdquo; <em>James Baldwin Lecture, Princeton.</em></li>
+        </ul>
+        </div>
+
+        <!-- ============ TOOLS ============ -->
+        <h3>Tools</h3>
+        <div class="scroll-reveal">
+        <p>
+          Python (pandas, scikit-learn, xgboost, scipy, matplotlib) for data preparation,
+          model training, Monte Carlo simulation, and output graphs. p5.js for interactive
+          visualizations. All code available on
+          <a href="https://github.com/dhruvmsheth/ai-monte-carlo">GitHub</a>.
+        </p>
+        </div>
+
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrapper">
+      Dhruv Sheth, Lauren Pryor, Tyler Gatewood, Amrita Pasupathy &middot; CS 162 &middot; March 2026
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal animation
+    document.addEventListener("DOMContentLoaded", () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
+      }, { threshold: 0.1 });
+      document.querySelectorAll(".scroll-reveal").forEach(el => observer.observe(el));
+
+      // Approval map toggle
+      document.querySelectorAll('.map-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.map-toggle').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('approval-map-iframe').src = btn.dataset.src;
+          document.getElementById('approval-map-caption').textContent = btn.dataset.caption;
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #fdfdfd; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif; color: #111; }
+#wrapper { max-width: 900px; margin: 0 auto; padding: 16px; }
+h2 { font-family: "Palatino", "Palatino Linotype", Georgia, serif; font-weight: 400; font-size: 1.8rem; margin-bottom: 8px; }
+p.desc { font-family: "Palatino", "Palatino Linotype", Georgia, serif; font-size: 1rem; color: #555; line-height: 1.6; margin-bottom: 12px; }
+#canvas-wrap { width: 100%; border: 1px solid #e8e8e8; border-radius: 6px; overflow: hidden; background: #fff; }
+#canvas-wrap canvas { display: block; }
+p.caption { font-size: 0.82rem; color: #828282; font-style: italic; margin-top: 6px; font-family: "Palatino", "Palatino Linotype", Georgia, serif; }
+</style>
+</head><body>
+<div id="wrapper">
+  <h2>Generative Model: Factor Decomposition</h2>
+  <p class="desc">
+    Each county's approval probability is constructed from a national baseline, then adjusted by
+    three factors: community resistance (penalty), unemployment (boost), and water stress (penalty).
+    The chart shows mean factor contributions across all data center locations.
+  </p>
+  <div id="canvas-wrap"></div>
+  <p class="caption">Generative approval model. National baseline from Heatmap/Embold 2025 survey data. Penalties and bonuses from domain knowledge and Census/WRI data.</p>
+</div>
+<script>
+const FACTORS = [
+  { name: "National Baseline", delta: 60.0, type: "base" },
+  { name: "Resistance Penalty", delta: -1.8, type: "penalty" },
+  { name: "Unemployment Boost", delta: +2.4, type: "boost" },
+  { name: "Water Stress", delta: -1.4, type: "penalty" },
+];
+// Final = 59.2%
+
+const COLORS = {
+  base: [91, 141, 238],    // #5b8dee
+  penalty: [231, 76, 60],  // #e74c3c
+  boost: [46, 204, 113],   // #2ecc71
+  final: [155, 89, 182],   // #9b59b6
+};
+
+const sk = (p) => {
+  let cW, cH;
+  const PAD = { t: 50, r: 40, b: 70, l: 60 };
+  const Y_MAX = 75;
+  const Y_STEP = 15;
+  const ANIM_DURATION = 600; // ms per bar
+  const ANIM_STAGGER = 180; // ms delay between bars
+  let animStart = -1;
+
+  // Precompute bar geometry (cumulative running total)
+  // Each bar: { name, bottom, top, delta, type, label }
+  const bars = [];
+  let running = 0;
+  for (const f of FACTORS) {
+    const bottom = f.type === "base" ? 0 : running;
+    const top = bottom + f.delta;
+    const label = f.type === "base" ? f.delta.toFixed(1) + "%"
+                : (f.delta >= 0 ? "+" : "") + f.delta.toFixed(1) + "%";
+    bars.push({ name: f.name, bottom, top, delta: f.delta, type: f.type, label });
+    running = top;
+  }
+  // Final total bar
+  const finalVal = running; // 59.2
+  bars.push({ name: "Final Approval", bottom: 0, top: finalVal, delta: finalVal, type: "final", label: finalVal.toFixed(1) + "%" });
+
+  const numBars = bars.length;
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function getBarProgress(barIndex, now) {
+    if (animStart < 0) return 0;
+    const elapsed = now - animStart;
+    const barStart = barIndex * ANIM_STAGGER;
+    const t = Math.max(0, Math.min(1, (elapsed - barStart) / ANIM_DURATION));
+    return easeOutCubic(t);
+  }
+
+  function allAnimDone(now) {
+    if (animStart < 0) return false;
+    const elapsed = now - animStart;
+    const totalDur = (numBars - 1) * ANIM_STAGGER + ANIM_DURATION;
+    return elapsed >= totalDur;
+  }
+
+  p.setup = () => {
+    const el = document.getElementById("canvas-wrap");
+    cW = el.clientWidth;
+    cH = Math.max(360, Math.min(cW * 0.48, 420));
+    p.createCanvas(cW, cH).parent("canvas-wrap");
+    p.textFont("-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, sans-serif");
+    animStart = p.millis();
+  };
+
+  p.draw = () => {
+    p.background(255);
+    const pW = cW - PAD.l - PAD.r;
+    const pH = cH - PAD.t - PAD.b;
+    const now = p.millis();
+
+    p.push();
+    p.translate(PAD.l, PAD.t);
+
+    // --- Grid lines and Y-axis labels ---
+    p.textAlign(p.RIGHT, p.CENTER);
+    p.textSize(11);
+    for (let v = 0; v <= Y_MAX; v += Y_STEP) {
+      const yy = pH - (v / Y_MAX) * pH;
+      p.stroke(230);
+      p.strokeWeight(0.7);
+      p.line(0, yy, pW, yy);
+      p.noStroke();
+      p.fill(130);
+      p.text(v + "%", -10, yy);
+    }
+
+    // Y-axis label
+    p.push();
+    p.translate(-48, pH / 2);
+    p.rotate(-p.HALF_PI);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.textSize(11);
+    p.fill(100);
+    p.text("Approval Probability", 0, 0);
+    p.pop();
+
+    // --- Bar geometry ---
+    const barGap = 0.25; // fraction of slot width used as gap
+    const slotW = pW / numBars;
+    const barW = slotW * (1 - barGap);
+    const halfGap = (slotW * barGap) / 2;
+
+    for (let i = 0; i < numBars; i++) {
+      const bar = bars[i];
+      const progress = getBarProgress(i, now);
+      const cx = i * slotW + halfGap; // left edge of bar
+
+      // Animated bottom/top
+      let animBottom, animTop;
+      if (bar.type === "base" || bar.type === "final") {
+        // Grows from 0 upward
+        animBottom = 0;
+        animTop = bar.top * progress;
+      } else {
+        // Floats: the bar's position slides in from the running total baseline
+        animBottom = bar.bottom;
+        animTop = bar.bottom + bar.delta * progress;
+      }
+
+      const yBottom = pH - (animBottom / Y_MAX) * pH;
+      const yTop = pH - (animTop / Y_MAX) * pH;
+
+      // Bar color
+      const col = COLORS[bar.type];
+      p.fill(col[0], col[1], col[2]);
+      p.noStroke();
+      p.rect(cx, Math.min(yTop, yBottom), barW, Math.abs(yTop - yBottom), 2);
+
+      // Connector line to next bar (thin dashed line at the running total)
+      if (i < numBars - 1 && bar.type !== "final" && progress > 0.05) {
+        const connY = pH - (bars[i].top / Y_MAX) * pH;
+        const nextProgress = getBarProgress(i + 1, now);
+        // Only show connector once current bar is mostly done
+        const connAlpha = Math.max(0, Math.min(255, (progress - 0.5) * 2 * 255));
+        if (connAlpha > 0) {
+          p.stroke(160, 160, 160, connAlpha);
+          p.strokeWeight(1);
+          p.drawingContext.setLineDash([3, 3]);
+          p.line(cx + barW, connY, (i + 1) * slotW + halfGap, connY);
+          p.drawingContext.setLineDash([]);
+        }
+      }
+
+      // Value annotation
+      if (progress > 0.6) {
+        const labelAlpha = Math.min(255, (progress - 0.6) * 2.5 * 255);
+        p.noStroke();
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(12);
+        p.textStyle(p.BOLD);
+
+        // Position label above bar for positive, below for negative
+        let labelY;
+        if (bar.delta >= 0) {
+          labelY = Math.min(yTop, yBottom) - 12;
+        } else {
+          labelY = Math.max(yTop, yBottom) + 12;
+        }
+
+        p.fill(col[0], col[1], col[2], labelAlpha);
+        p.text(bar.label, cx + barW / 2, labelY);
+        p.textStyle(p.NORMAL);
+      }
+
+      // X-axis label (factor name) - wrap long names
+      if (progress > 0.1) {
+        const labelAlpha = Math.min(255, (progress - 0.1) * 2 * 255);
+        p.noStroke();
+        p.fill(80, 80, 80, labelAlpha);
+        p.textAlign(p.CENTER, p.TOP);
+        p.textSize(10);
+        p.textStyle(p.NORMAL);
+
+        const words = bar.name.split(" ");
+        if (words.length <= 1) {
+          p.text(bar.name, cx + barW / 2, pH + 8);
+        } else {
+          // Split into two lines
+          const mid = Math.ceil(words.length / 2);
+          const line1 = words.slice(0, mid).join(" ");
+          const line2 = words.slice(mid).join(" ");
+          p.text(line1, cx + barW / 2, pH + 8);
+          p.text(line2, cx + barW / 2, pH + 22);
+        }
+      }
+    }
+
+    // --- Baseline axis line ---
+    p.stroke(180);
+    p.strokeWeight(1);
+    p.line(0, pH, pW, pH);
+
+    p.pop();
+
+    // Stop looping once animation is complete
+    if (allAnimDone(now)) {
+      p.noLoop();
+    }
+  };
+
+  p.windowResized = () => {
+    const el = document.getElementById("canvas-wrap");
+    cW = el.clientWidth;
+    cH = Math.max(360, Math.min(cW * 0.48, 420));
+    p.resizeCanvas(cW, cH);
+    p.loop();
+  };
+};
+
+new p5(sk);
+</script></body></html>

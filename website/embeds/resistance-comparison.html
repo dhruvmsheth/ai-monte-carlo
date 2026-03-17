@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #fdfdfd; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif; color: #111; }
+#wrapper { max-width: 900px; margin: 0 auto; padding: 16px; }
+h2 { font-family: "Palatino", "Palatino Linotype", Georgia, serif; font-weight: 400; font-size: 1.8rem; margin-bottom: 8px; }
+p.desc { font-family: "Palatino", "Palatino Linotype", Georgia, serif; font-size: 1rem; color: #555; line-height: 1.6; margin-bottom: 12px; }
+#canvas-wrap { width: 100%; border: 1px solid #e8e8e8; border-radius: 6px; overflow: hidden; background: #fff; }
+#canvas-wrap canvas { display: block; }
+p.caption { font-size: 0.82rem; color: #828282; font-style: italic; margin-top: 6px; font-family: "Palatino", "Palatino Linotype", Georgia, serif; }
+</style>
+</head><body>
+<div id="wrapper">
+  <h2>Resistance Drives Measurable Drops</h2>
+  <p class="desc">
+    Data centers in communities with documented opposition face significantly lower approval rates
+    across all thresholds. Community resistance functions as protection against information
+    asymmetry &mdash; drawing attention to impacts that might otherwise go unnoticed.
+  </p>
+  <div id="canvas-wrap"></div>
+  <p class="caption">Generative model: 1,000 MC simulations per data center. Resistance data from Bryce Rejection Database and DataCenterWatch.</p>
+</div>
+<script>
+const THRESHOLDS = ["50%", "60%", "75%", "80%"];
+const NO_RESIST  = [92, 68, 21, 10];
+const WITH_RESIST = [71, 42, 8, 3];
+
+const COL_GREEN = [46, 204, 113];
+const COL_RED   = [231, 76, 60];
+
+const sk = (p) => {
+  let cW, cH;
+  const PAD = { t: 60, r: 30, b: 60, l: 60 };
+  let animProgress = 0;
+  const ANIM_DURATION = 45; // frames to fully grow
+  let hoveredBar = null; // {group, bar, value}
+
+  p.setup = () => {
+    const el = document.getElementById("canvas-wrap");
+    cW = el.clientWidth;
+    cH = 400;
+    p.createCanvas(cW, cH).parent("canvas-wrap");
+    p.textFont("-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, sans-serif");
+    animProgress = 0;
+  };
+
+  p.draw = () => {
+    p.background(255);
+    const pW = cW - PAD.l - PAD.r;
+    const pH = cH - PAD.t - PAD.b;
+
+    // Animation easing (ease-out cubic)
+    animProgress = Math.min(animProgress + 1, ANIM_DURATION);
+    const t = animProgress / ANIM_DURATION;
+    const ease = 1 - Math.pow(1 - t, 3);
+
+    p.push();
+    p.translate(PAD.l, PAD.t);
+
+    // Title
+    p.noStroke();
+    p.fill(17);
+    p.textAlign(p.CENTER, p.BOTTOM);
+    p.textSize(14);
+    p.textStyle(p.BOLD);
+    p.text("Approval Rates: With vs Without Community Resistance", pW / 2, -16);
+    p.textStyle(p.NORMAL);
+
+    // Y-axis grid lines every 20%
+    p.textAlign(p.RIGHT, p.CENTER);
+    p.textSize(11);
+    for (let v = 0; v <= 100; v += 20) {
+      const yy = pH - (v / 100) * pH;
+      p.stroke(225);
+      p.strokeWeight(0.7);
+      p.line(0, yy, pW, yy);
+      p.noStroke();
+      p.fill(130);
+      p.text(v + "%", -8, yy);
+    }
+
+    // Y-axis label
+    p.push();
+    p.translate(-48, pH / 2);
+    p.rotate(-p.HALF_PI);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.textSize(11);
+    p.fill(100);
+    p.text("Approval Rate", 0, 0);
+    p.pop();
+
+    // Bar geometry
+    const nGroups = THRESHOLDS.length;
+    const groupWidth = pW / nGroups;
+    const barWidth = groupWidth * 0.28;
+    const gap = barWidth * 0.25;
+
+    hoveredBar = null;
+    const mx = p.mouseX - PAD.l;
+    const my = p.mouseY - PAD.t;
+
+    for (let g = 0; g < nGroups; g++) {
+      const groupCenter = groupWidth * g + groupWidth / 2;
+      const x1 = groupCenter - gap / 2 - barWidth; // no-resist bar left edge
+      const x2 = groupCenter + gap / 2;             // with-resist bar left edge
+
+      // Bar heights animated
+      const h1 = (NO_RESIST[g] / 100) * pH * ease;
+      const h2 = (WITH_RESIST[g] / 100) * pH * ease;
+
+      const y1 = pH - h1;
+      const y2 = pH - h2;
+
+      // Detect hover
+      const overBar1 = mx >= x1 && mx <= x1 + barWidth && my >= y1 && my <= pH;
+      const overBar2 = mx >= x2 && mx <= x2 + barWidth && my >= y2 && my <= pH;
+
+      // Draw no-resist bar (green)
+      if (overBar1) {
+        p.fill(COL_GREEN[0] - 20, COL_GREEN[1] - 20, COL_GREEN[2] - 20);
+        hoveredBar = { group: g, bar: 0, value: NO_RESIST[g], label: "No resistance", x: x1 + barWidth / 2, y: y1 };
+      } else {
+        p.fill(COL_GREEN[0], COL_GREEN[1], COL_GREEN[2]);
+      }
+      p.noStroke();
+      p.rect(x1, y1, barWidth, h1, 3, 3, 0, 0);
+
+      // Draw with-resist bar (red)
+      if (overBar2) {
+        p.fill(COL_RED[0] - 20, COL_RED[1] - 20, COL_RED[2] - 20);
+        hoveredBar = { group: g, bar: 1, value: WITH_RESIST[g], label: "With resistance", x: x2 + barWidth / 2, y: y2 };
+      } else {
+        p.fill(COL_RED[0], COL_RED[1], COL_RED[2]);
+      }
+      p.noStroke();
+      p.rect(x2, y2, barWidth, h2, 3, 3, 0, 0);
+
+      // Value labels on top of bars (only after animation completes)
+      if (ease > 0.95) {
+        p.textAlign(p.CENTER, p.BOTTOM);
+        p.textSize(12);
+        p.textStyle(p.BOLD);
+
+        p.fill(COL_GREEN[0] - 30, COL_GREEN[1] - 30, COL_GREEN[2] - 30);
+        p.text(NO_RESIST[g] + "%", x1 + barWidth / 2, y1 - 4);
+
+        p.fill(COL_RED[0] - 30, COL_RED[1] - 30, COL_RED[2] - 30);
+        p.text(WITH_RESIST[g] + "%", x2 + barWidth / 2, y2 - 4);
+
+        p.textStyle(p.NORMAL);
+      }
+
+      // X-axis group label
+      p.noStroke();
+      p.fill(80);
+      p.textAlign(p.CENTER, p.TOP);
+      p.textSize(12);
+      p.textStyle(p.NORMAL);
+      p.text(THRESHOLDS[g], groupCenter, pH + 8);
+    }
+
+    // X-axis title
+    p.fill(100);
+    p.textAlign(p.CENTER, p.TOP);
+    p.textSize(11);
+    p.text("Voting Threshold", pW / 2, pH + 28);
+
+    // Tooltip on hover
+    if (hoveredBar && mx >= 0 && mx <= pW && my >= 0 && my <= pH) {
+      const tt = hoveredBar;
+      const ttText = THRESHOLDS[tt.group] + " threshold: " + tt.value + "% approved (" + tt.label + ")";
+      p.textSize(11);
+      p.textStyle(p.NORMAL);
+      const ttW = p.textWidth(ttText) + 16;
+      const ttH = 26;
+      let ttX = tt.x - ttW / 2;
+      let ttY = tt.y - ttH - 10;
+      // Keep tooltip in bounds
+      if (ttX < 0) ttX = 0;
+      if (ttX + ttW > pW) ttX = pW - ttW;
+      if (ttY < 0) ttY = tt.y + 10;
+
+      p.fill(40, 40, 40, 230);
+      p.noStroke();
+      p.rect(ttX, ttY, ttW, ttH, 4);
+
+      // Arrow
+      p.triangle(tt.x - 5, ttY + ttH, tt.x + 5, ttY + ttH, tt.x, ttY + ttH + 6);
+
+      p.fill(255);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text(ttText, ttX + ttW / 2, ttY + ttH / 2);
+    }
+
+    // Legend
+    const legendY = -38;
+    const legendItems = [
+      { label: "No resistance", col: COL_GREEN },
+      { label: "With resistance", col: COL_RED }
+    ];
+    p.textSize(11);
+    p.textStyle(p.NORMAL);
+    const totalLegendW = legendItems.reduce((acc, item) => acc + p.textWidth(item.label) + 30, 0) + 16;
+    let lx = pW / 2 - totalLegendW / 2;
+    for (const item of legendItems) {
+      p.fill(item.col[0], item.col[1], item.col[2]);
+      p.noStroke();
+      p.rect(lx, legendY - 5, 14, 14, 2);
+      p.fill(80);
+      p.textAlign(p.LEFT, p.CENTER);
+      p.text(item.label, lx + 18, legendY + 2);
+      lx += p.textWidth(item.label) + 34;
+    }
+
+    p.pop();
+
+    // Stop looping once animation is complete and no hover
+    if (animProgress >= ANIM_DURATION && !hoveredBar) {
+      p.noLoop();
+    }
+  };
+
+  p.mouseMoved = () => {
+    p.loop();
+  };
+
+  p.windowResized = () => {
+    const el = document.getElementById("canvas-wrap");
+    cW = el.clientWidth;
+    cH = 400;
+    p.resizeCanvas(cW, cH);
+    p.loop();
+  };
+};
+
+new p5(sk);
+</script></body></html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #fdfdfd; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif; color: #111; }
+#wrapper { max-width: 900px; margin: 0 auto; padding: 16px; }
+h2 { font-family: "Palatino", "Palatino Linotype", Georgia, serif; font-weight: 400; font-size: 1.8rem; margin-bottom: 8px; }
+p.desc { font-family: "Palatino", "Palatino Linotype", Georgia, serif; font-size: 1rem; color: #555; line-height: 1.6; margin-bottom: 12px; }
+#canvas-wrap { width: 100%; border: 1px solid #e8e8e8; border-radius: 6px; overflow: hidden; background: #fff; }
+#canvas-wrap canvas { display: block; }
+p.caption { font-size: 0.82rem; color: #828282; font-style: italic; margin-top: 6px; font-family: "Palatino", "Palatino Linotype", Georgia, serif; }
+</style>
+</head><body>
+<div id="wrapper">
+  <h2>The Desperation Index</h2>
+  <p class="desc">
+    Communities with high unemployment are measurably more permissive toward data center
+    construction. The generative model captures this as an &lsquo;unemployment boost&rsquo;&thinsp;&mdash;&thinsp;economically
+    desperate cities accept development even when informed of downsides, while prosperous
+    cities can afford to be selective.
+  </p>
+  <div id="canvas-wrap"></div>
+  <p class="caption">Synthetic distributions from generative model parameters. Unemployment data: Census ACS 5-Year (2022). Threshold lines show 50% (simple majority) and 75% (supermajority) consent requirements.</p>
+</div>
+<script>
+const sk = (p) => {
+  /* ── data ─────────────────────────────────────────────── */
+  const TIERS = [
+    { name: "Low Unemployment",  mean: 0.56, std: 0.06,  color: [52, 152, 219] },
+    { name: "Mid Unemployment",  mean: 0.62, std: 0.055, color: [243, 156, 18] },
+    { name: "High Unemployment", mean: 0.68, std: 0.07,  color: [231, 76, 60] },
+  ];
+  const THRESHOLDS = [0.50, 0.75];
+  const X_MIN = 0.30, X_MAX = 0.90;
+  const N_PTS = 200; // points along the density curve
+
+  /* ── layout ───────────────────────────────────────────── */
+  const PAD = { t: 70, r: 40, b: 50, l: 160 };
+  let cW, cH, plotW, plotH;
+  const VIOLIN_GAP = 20; // vertical gap between violins
+  let violinH; // height allocated per violin row
+
+  /* ── animation ────────────────────────────────────────── */
+  let startTime = 0;
+  const FADE_DURATION = 600;  // ms per violin fade-in
+  const STAGGER = 350;        // ms delay between violins
+
+  /* ── helpers ──────────────────────────────────────────── */
+  function gaussianPDF(x, mu, sigma) {
+    const z = (x - mu) / sigma;
+    return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+  }
+
+  function xToPixel(val) {
+    return PAD.l + ((val - X_MIN) / (X_MAX - X_MIN)) * plotW;
+  }
+
+  function resize() {
+    const wrap = document.getElementById("canvas-wrap");
+    cW = wrap.clientWidth;
+    cH = Math.max(380, Math.round(cW * 0.5));
+    plotW = cW - PAD.l - PAD.r;
+    plotH = cH - PAD.t - PAD.b;
+    violinH = (plotH - VIOLIN_GAP * (TIERS.length - 1)) / TIERS.length;
+    p.resizeCanvas(cW, cH);
+  }
+
+  /* ── p5 lifecycle ─────────────────────────────────────── */
+  p.setup = () => {
+    const wrap = document.getElementById("canvas-wrap");
+    cW = wrap.clientWidth;
+    cH = Math.max(380, Math.round(cW * 0.5));
+    plotW = cW - PAD.l - PAD.r;
+    plotH = cH - PAD.t - PAD.b;
+    violinH = (plotH - VIOLIN_GAP * (TIERS.length - 1)) / TIERS.length;
+    const canvas = p.createCanvas(cW, cH);
+    canvas.parent("canvas-wrap");
+    p.textFont("-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, sans-serif");
+    startTime = p.millis();
+    window.addEventListener("resize", resize);
+  };
+
+  p.draw = () => {
+    p.background(255);
+    const elapsed = p.millis() - startTime;
+
+    /* ── title + subtitle ─────────────────────────────── */
+    p.noStroke();
+    p.fill(30);
+    p.textSize(15);
+    p.textStyle(p.BOLD);
+    p.textAlign(p.LEFT, p.TOP);
+    p.text("Approval Distribution by Unemployment Tier", PAD.l, 16);
+    p.textStyle(p.NORMAL);
+    p.textSize(11.5);
+    p.fill(130);
+    p.text("Dashed lines = voting thresholds", PAD.l, 36);
+
+    /* ── x-axis ───────────────────────────────────────── */
+    const xBottom = PAD.t + plotH;
+    p.stroke(200);
+    p.strokeWeight(1);
+    p.line(PAD.l, xBottom, PAD.l + plotW, xBottom);
+
+    // tick marks
+    p.textAlign(p.CENTER, p.TOP);
+    p.textSize(10.5);
+    p.fill(100);
+    for (let v = 0.3; v <= 0.91; v += 0.1) {
+      const px = xToPixel(v);
+      p.stroke(200);
+      p.line(px, xBottom, px, xBottom + 5);
+      p.noStroke();
+      p.text((v * 100).toFixed(0) + "%", px, xBottom + 8);
+    }
+    // axis label
+    p.textSize(11);
+    p.fill(80);
+    p.text("Approval Probability", PAD.l + plotW / 2, xBottom + 28);
+
+    /* ── threshold dashed lines ───────────────────────── */
+    for (const thr of THRESHOLDS) {
+      const px = xToPixel(thr);
+      p.stroke(160);
+      p.strokeWeight(1);
+      drawDashedLine(px, PAD.t - 5, px, xBottom, 5, 4);
+      // label
+      p.noStroke();
+      p.fill(130);
+      p.textSize(10);
+      p.textAlign(p.CENTER, p.BOTTOM);
+      p.text((thr * 100).toFixed(0) + "%", px, PAD.t - 8);
+    }
+
+    /* ── violins ──────────────────────────────────────── */
+    for (let i = 0; i < TIERS.length; i++) {
+      const tier = TIERS[i];
+      const tierElapsed = elapsed - i * STAGGER;
+      if (tierElapsed <= 0) continue; // not started yet
+
+      // progress: 0 to 1, eased
+      const rawT = Math.min(tierElapsed / FADE_DURATION, 1);
+      const t = easeOutCubic(rawT);
+
+      const centerY = PAD.t + i * (violinH + VIOLIN_GAP) + violinH / 2;
+      const halfH = violinH / 2 - 4; // small internal margin
+
+      // Compute density points
+      const xs = [];
+      const densities = [];
+      let maxDensity = 0;
+      for (let j = 0; j <= N_PTS; j++) {
+        const xVal = X_MIN + (j / N_PTS) * (X_MAX - X_MIN);
+        const d = gaussianPDF(xVal, tier.mean, tier.std);
+        xs.push(xVal);
+        densities.push(d);
+        if (d > maxDensity) maxDensity = d;
+      }
+
+      // Determine how far right to reveal (animation slides from left)
+      const revealX = X_MIN + t * (X_MAX - X_MIN);
+
+      // Draw filled violin polygon
+      const [r, g, b] = tier.color;
+
+      p.fill(r, g, b, 128 * t); // alpha fades in
+      p.stroke(r, g, b, 220 * t);
+      p.strokeWeight(1.5);
+
+      p.beginShape();
+      // top half (going left to right)
+      for (let j = 0; j <= N_PTS; j++) {
+        if (xs[j] > revealX) break;
+        const px = xToPixel(xs[j]);
+        const normalD = densities[j] / maxDensity;
+        const py = centerY - normalD * halfH;
+        p.vertex(px, py);
+      }
+      // bottom half (going right to left, mirrored)
+      for (let j = N_PTS; j >= 0; j--) {
+        if (xs[j] > revealX) continue;
+        const px = xToPixel(xs[j]);
+        const normalD = densities[j] / maxDensity;
+        const py = centerY + normalD * halfH;
+        p.vertex(px, py);
+      }
+      p.endShape(p.CLOSE);
+
+      // Center line (horizontal through violin)
+      p.stroke(r, g, b, 60 * t);
+      p.strokeWeight(0.7);
+      const lineEndX = Math.min(xToPixel(revealX), xToPixel(X_MAX));
+      p.line(xToPixel(X_MIN), centerY, lineEndX, centerY);
+
+      // Mean dot
+      if (revealX >= tier.mean) {
+        const dotAlpha = Math.min((revealX - tier.mean) / 0.05, 1) * t;
+        p.fill(r, g, b, 255 * dotAlpha);
+        p.stroke(255, 255, 255, 200 * dotAlpha);
+        p.strokeWeight(1.5);
+        p.ellipse(xToPixel(tier.mean), centerY, 8, 8);
+
+        // Mean label
+        p.noStroke();
+        p.fill(r, g, b, 200 * dotAlpha);
+        p.textSize(9.5);
+        p.textAlign(p.CENTER, p.TOP);
+        p.text("mean=" + (tier.mean * 100).toFixed(0) + "%", xToPixel(tier.mean), centerY + halfH + 4);
+      }
+
+      // Tier name label (on the left)
+      p.noStroke();
+      p.fill(30, 30, 30, 255 * t);
+      p.textSize(12);
+      p.textAlign(p.RIGHT, p.CENTER);
+      p.textStyle(p.BOLD);
+      p.text(tier.name, PAD.l - 14, centerY);
+      p.textStyle(p.NORMAL);
+    }
+
+    // Stop looping once all animations are done
+    const totalAnimTime = (TIERS.length - 1) * STAGGER + FADE_DURATION + 100;
+    if (elapsed > totalAnimTime) {
+      p.noLoop();
+    }
+  };
+
+  /* ── utility: dashed line ───────────────────────────── */
+  function drawDashedLine(x1, y1, x2, y2, dashLen, gapLen) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const steps = Math.floor(len / (dashLen + gapLen));
+    const ux = dx / len;
+    const uy = dy / len;
+    for (let i = 0; i < steps; i++) {
+      const sx = x1 + (dashLen + gapLen) * i * ux;
+      const sy = y1 + (dashLen + gapLen) * i * uy;
+      p.line(sx, sy, sx + dashLen * ux, sy + dashLen * uy);
+    }
+  }
+
+  /* ── easing ─────────────────────────────────────────── */
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+};
+
+new p5(sk);
+</script>
+</body></html>

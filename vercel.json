@@ -1,6 +1,8 @@
 {
-  "buildCommand": null,
+  "framework": null,
+  "buildCommand": "",
   "outputDirectory": "website",
+  "installCommand": "",
   "cleanUrls": true,
   "headers": [
     {
